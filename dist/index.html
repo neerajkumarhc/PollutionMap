@@ -1409,7 +1409,7 @@ function renderMap() {
   const northZeroTag = NORTH_OF_ARC_ZERO_FIELD.enabled ? `northOfArc=0(padDeg=${NORTH_OF_ARC_ZERO_FIELD.padDeg})` : "northOfArc=unchanged";
 
   el.metaLine.textContent =
-    `Grid ${GRID.nx}×${GRID.ny} | ${timeTag} | timeMode=${TIME_MODE} | view=${VIEW_MODE} | mapSize=${state.mapSizePct}% | ${dataTag} | ${barrierTag} | ${northZeroTag} | ${animTag}`;
+    `Grid ${GRID.nx}×${GRID.ny} | ${timeTag} | timeMode=${TIME_MODE} | mapSize=${state.mapSizePct}% | ${dataTag} | ${barrierTag} | ${northZeroTag} | ${animTag}`;
 }
 
 function computeRegionAverages() {
