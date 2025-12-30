@@ -195,47 +195,56 @@
     }
     canvas{width:100%;height:100%;display:block}
 
-    /* India average hero card (top-right inside map) */
-    .india-hero{
-      position:absolute;
-      top:10px;
-      right:10px;
-      width:min(320px, calc(100% - 20px));
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,0.16);
-      background:rgba(0,0,0,0.50);
-      backdrop-filter:blur(6px);
-      padding:12px;
-      display:grid;
-      gap:8px;
-      pointer-events:none;
-    }
-    .india-hero .k{
-      font-family:var(--mono);
-      font-size:10px;
-      color:var(--muted2);
-    }
-    .india-hero .v{
-      font-size:18px;
-      font-weight:900;
-      line-height:1.05;
-    }
-    .india-hero .v small{
-      font-size:11px;
-      color:var(--muted2);
-      font-weight:850;
-      font-family:var(--mono);
-    }
-    .india-hero .meta{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      font-family:var(--mono);
-      font-size:10px;
-      color:var(--muted2);
-    }
+   /* India average hero card (small square box, top-right inside map) */
+.india-hero{
+  position:absolute;
+  top:10px;
+  right:10px;
 
+  width:120px;
+  height:120px;
+
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.16);
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(6px);
+
+  padding:10px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:6px;
+
+  pointer-events:none;
+}
+
+.india-hero .k{
+  font-family:var(--mono);
+  font-size:10px;
+  line-height:1.1;
+  color:var(--muted2);
+}
+
+.india-hero .v{
+  font-size:18px;
+  font-weight:900;
+  line-height:1.05;
+}
+
+.india-hero .v small{
+  display:block;        /* stack unit under the number to fit the square */
+  margin-top:2px;
+  font-size:10px;
+  color:var(--muted2);
+  font-weight:850;
+  font-family:var(--mono);
+}
+
+/* Hide the extra meta row to keep it compact */
+.india-hero .meta{
+  display:none;
+}
     /* City cards section below map */
     .city-section{
       padding:12px;
