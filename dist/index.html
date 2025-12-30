@@ -7,328 +7,371 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>India PM2.5 Heat Map (Prototype)</title>
   <style>
-    :root {
-      --bg: #0b1220;
-      --panel: rgba(255,255,255,0.06);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.7);
-      --muted2: rgba(255,255,255,0.55);
-      --border: rgba(255,255,255,0.12);
-      --accent: #7dd3fc;
-      --danger: #fb7185;
-      --ok: #34d399;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    :root{
+      --bg:#0b1220;
+      --panel:rgba(255,255,255,0.06);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.7);
+      --muted2:rgba(255,255,255,0.55);
+      --border:rgba(255,255,255,0.12);
+      --accent:#7dd3fc;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
     }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
       background: radial-gradient(1200px 600px at 20% 0%, rgba(125,211,252,0.18), transparent 60%),
                   radial-gradient(900px 600px at 90% 10%, rgba(52,211,153,0.12), transparent 60%),
                   var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
+      color:var(--text);
+      font-family:var(--sans);
+    }
+    header{
+      padding:12px 14px 10px 14px;
+      border-bottom:1px solid var(--border);
+    }
+    header h1{
+      margin:0 0 6px 0;
+      font-size:16px;
+      font-weight:750;
+      letter-spacing:0.2px;
+    }
+    header p{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      max-width:1100px;
+    }
+    .badge{
+      display:inline-block;
+      font-family:var(--mono);
+      font-size:10px;
+      padding:2px 7px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      color:var(--muted);
+      background:rgba(0,0,0,0.18);
+      vertical-align:middle;
+      margin-left:8px;
     }
 
-    header {
-      padding: 12px 14px 10px 14px;
-      border-bottom: 1px solid var(--border);
+    /* Mobile-first layout */
+    .layout{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      padding:12px;
+      max-width:1100px;
+      margin:0 auto;
     }
-    header h1 {
-      margin: 0 0 6px 0;
-      font-size: 16px;
-      font-weight: 750;
-      letter-spacing: 0.2px;
-    }
-    header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-      max-width: 1100px;
-    }
-    .badge {
-      display: inline-block;
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 2px 7px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--muted);
-      background: rgba(0,0,0,0.18);
-      vertical-align: middle;
-      margin-left: 8px;
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 12px;
-      padding: 12px 12px 14px 12px;
-      max-width: 1400px;
-      margin: 0 auto;
+    /* Controls inside map header */
+    .map-card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      background:rgba(0,0,0,0.18);
     }
-    @media (max-width: 1020px) {
-      .layout { grid-template-columns: 1fr; }
+    .map-hd{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
     }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
+    .map-hd .left{
+      display:grid;
+      gap:4px;
+      min-width:220px;
     }
-
-    .panel .panel-hd {
-      padding: 10px 10px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    .map-hd .title{
+      font-size:13px;
+      font-weight:850;
     }
-    .panel .panel-hd .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
+    .map-hd .meta{
+      font-size:11px;
+      color:var(--muted);
+      font-family:var(--mono);
     }
-    .panel .panel-hd h2 {
-      margin: 0;
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(255,255,255,0.92);
-    }
-    .panel .panel-hd .sub {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.25;
-    }
-    .panel .panel-bd {
-      padding: 10px;
+    .toolbar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
     }
 
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+    select,button,input[type="range"]{font-family:var(--sans)}
+    select,button{
+      background:rgba(0,0,0,0.20);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:10px;
+      padding:7px 9px;
+      font-size:12px;
     }
-    select, button, input[type="range"] { font-family: var(--sans); }
-    select, button {
-      background: rgba(0,0,0,0.20);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 10px;
-      padding: 7px 9px;
-      font-size: 12px;
+    button{cursor:pointer}
+    button:hover{border-color:rgba(255,255,255,0.22)}
+    button:disabled{opacity:0.45;cursor:not-allowed}
+    .btn-muted{color:var(--muted)}
+    .btn-play{border-color:rgba(125,211,252,0.35)}
+    .btn-play:hover{border-color:rgba(125,211,252,0.65)}
+    .btn-seg{
+      padding:6px 8px;
+      border-radius:10px;
+      font-family:var(--mono);
+      font-size:11px;
+      color:rgba(255,255,255,0.88);
+      border:1px solid rgba(255,255,255,0.14);
+      background:rgba(0,0,0,0.16);
     }
-    button { cursor: pointer; }
-    button:hover { border-color: rgba(255,255,255,0.22); }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-    .btn-muted { color: var(--muted); }
-    .btn-play { border-color: rgba(125,211,252,0.35); }
-    .btn-play:hover { border-color: rgba(125,211,252,0.65); }
-
-    .btn-seg {
-      padding: 6px 8px;
-      border-radius: 10px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: rgba(255,255,255,0.88);
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.16);
+    .btn-seg.active{
+      border-color:rgba(125,211,252,0.65);
+      box-shadow:inset 0 0 0 1px rgba(125,211,252,0.18);
+      color:rgba(255,255,255,0.95);
     }
-    .btn-seg.active {
-      border-color: rgba(125,211,252,0.65);
-      box-shadow: inset 0 0 0 1px rgba(125,211,252,0.18);
-      color: rgba(255,255,255,0.95);
+    .seg-group{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:6px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.12);
     }
-
-    .seg-group {
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-      padding: 6px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.12);
-    }
-    .seg-label {
-      font-size: 11px;
-      color: var(--muted2);
-      font-family: var(--mono);
-      padding: 0 4px 0 2px;
-      user-select: none;
+    .seg-label{
+      font-size:11px;
+      color:var(--muted2);
+      font-family:var(--mono);
+      padding:0 4px 0 2px;
+      user-select:none;
     }
 
-    .timeline {
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.12);
-      border-radius: 12px;
-      padding: 10px;
-      display: grid;
-      gap: 8px;
+    .timeline{
+      width:100%;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(0,0,0,0.12);
+      border-radius:12px;
+      padding:10px;
+      display:grid;
+      gap:8px;
     }
-    .timeline .top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: baseline;
-      flex-wrap: wrap;
+    .timeline .top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      flex-wrap:wrap;
     }
-    .timeline .title {
-      font-size: 11px;
-      font-weight: 850;
-      color: rgba(255,255,255,0.92);
+    .timeline .title{
+      font-size:11px;
+      font-weight:850;
+      color:rgba(255,255,255,0.92);
     }
-    .timeline .value {
-      font-size: 11px;
-      font-family: var(--mono);
-      color: rgba(255,255,255,0.88);
-    }
-    .timeline .hint {
-      font-size: 11px;
-      color: var(--muted2);
-      line-height: 1.35;
+    .timeline .value{
+      font-size:11px;
+      font-family:var(--mono);
+      color:rgba(255,255,255,0.88);
     }
 
-    .map-wrap { position: relative; padding: 12px; }
-    .map-card {
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(0,0,0,0.18);
+    /* Map */
+    .map-wrap{position:relative}
+    .canvas-wrap{
+      position:relative;
+      width:100%;
+      aspect-ratio:1 / 1; /* fixed square */
+      height:auto;
+      margin:0 auto;
     }
-    .map-hd {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .map-hd .left { display: grid; gap: 4px; }
-    .map-hd .title { font-size: 13px; font-weight: 850; }
-    .map-hd .meta { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    canvas{width:100%;height:100%;display:block}
 
-    .canvas-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      height: auto;
-      margin: 0 auto;
+    /* India average hero card (top-right inside map) */
+    .india-hero{
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:min(320px, calc(100% - 20px));
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.16);
+      background:rgba(0,0,0,0.50);
+      backdrop-filter:blur(6px);
+      padding:12px;
+      display:grid;
+      gap:8px;
+      pointer-events:none;
     }
-    canvas { width: 100%; height: 100%; display: block; }
-
-    .legend {
-      position: absolute;
-      left: auto;
-      right: 14px;
-      bottom: auto;
-      top: 62%;
-      transform: translateY(-50%);
-      background: rgba(0,0,0,0.40);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 12px;
-      padding: 10px;
-      width: 260px;
-      backdrop-filter: blur(6px);
+    .india-hero .k{
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--muted2);
     }
-    @media (max-width: 520px) {
-      .legend {
-        right: 10px;
-        top: auto;
-        bottom: 12px;
-        transform: none;
-        width: 240px;
-      }
+    .india-hero .v{
+      font-size:18px;
+      font-weight:900;
+      line-height:1.05;
     }
-
-    .legend .lg-title {
-      font-size: 11px;
-      font-weight: 900;
-      color: rgba(255,255,255,0.9);
-      margin-bottom: 8px;
+    .india-hero .v small{
+      font-size:11px;
+      color:var(--muted2);
+      font-weight:850;
+      font-family:var(--mono);
     }
-    .legend .bar {
-      height: 10px;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: #111827;
-      display: flex;
-    }
-    .legend .bar > div { flex: 1; }
-    .legend .ticks {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted2);
-      margin-top: 6px;
+    .india-hero .meta{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--muted2);
     }
 
-    .tooltip {
-      position: absolute;
-      pointer-events: none;
-      transform: translate(10px, 10px);
-      padding: 8px 9px;
-      border-radius: 12px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.16);
-      font-family: var(--mono);
-      font-size: 11px;
-      color: rgba(255,255,255,0.92);
-      min-width: 210px;
-      display: none;
-      white-space: nowrap;
-      backdrop-filter: blur(6px);
+    /* City cards section below map */
+    .city-section{
+      padding:12px;
     }
-    .tooltip .muted { color: var(--muted2); }
+    .city-section .hd{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      margin-bottom:10px;
+    }
+    .city-section .hd .t{
+      font-size:12px;
+      font-weight:900;
+      color:rgba(255,255,255,0.92);
+    }
+    .city-section .hd .d{
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--muted2);
+    }
+    .city-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (min-width:720px){
+      .city-grid{grid-template-columns:repeat(4, minmax(0, 1fr))}
+    }
+    .city-card{
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.12);
+      border-radius:14px;
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .city-card .name{
+      font-family:var(--mono);
+      font-size:11px;
+      color:rgba(255,255,255,0.85);
+      font-weight:850;
+    }
+    .city-card .val{
+      font-size:14px;
+      font-weight:900;
+    }
+    .city-card .val small{
+      font-size:10px;
+      color:var(--muted2);
+      font-weight:850;
+      font-family:var(--mono);
+    }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+    .legend{
+      position:absolute;
+      right:10px;
+      bottom:10px;
+      background:rgba(0,0,0,0.40);
+      border:1px solid rgba(255,255,255,0.14);
+      border-radius:12px;
+      padding:10px;
+      width:240px;
+      backdrop-filter:blur(6px);
     }
-    .stat {
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      padding: 8px 10px;
+    @media (min-width:720px){ .legend{width:260px} }
+    .legend .lg-title{
+      font-size:11px;
+      font-weight:900;
+      color:rgba(255,255,255,0.9);
+      margin-bottom:8px;
     }
-    .stat .k {
-      font-size: 10px;
-      color: var(--muted2);
-      font-family: var(--mono);
-      line-height: 1.15;
+    .legend .bar{
+      height:10px;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.16);
+      background:#111827;
+      display:flex;
     }
-    .stat .v {
-      margin-top: 4px;
-      font-size: 14px;
-      font-weight: 850;
-      letter-spacing: 0.15px;
-    }
-    .stat .v small {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
+    .legend .bar>div{flex:1}
+    .legend .ticks{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--muted2);
+      margin-top:6px;
     }
 
-    .note {
-      margin-top: 8px;
-      font-size: 11px;
-      color: var(--muted2);
-      line-height: 1.35;
+    .tooltip{
+      position:absolute;
+      pointer-events:none;
+      transform:translate(10px,10px);
+      padding:8px 9px;
+      border-radius:12px;
+      background:rgba(0,0,0,0.55);
+      border:1px solid rgba(255,255,255,0.16);
+      font-family:var(--mono);
+      font-size:11px;
+      color:rgba(255,255,255,0.92);
+      min-width:210px;
+      display:none;
+      white-space:nowrap;
+      backdrop-filter:blur(6px);
     }
-    .note code { font-family: var(--mono); color: rgba(255,255,255,0.86); }
-    .warnline { border-left: 3px solid rgba(251,191,36,0.7); padding-left: 10px; margin-top: 8px; }
-    .hidden { display: none !important; }
+    .tooltip .muted{color:var(--muted2)}
+
+    footer{
+      border-top:1px solid var(--border);
+      margin-top:10px;
+      padding:12px;
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .footer-inner{
+      max-width:1100px;
+      margin:0 auto;
+      display:grid;
+      gap:10px;
+    }
+    .foot-note{
+      border-left:3px solid rgba(251,191,36,0.7);
+      padding-left:10px;
+    }
+    .copyright{
+      font-family:var(--mono);
+      color:var(--muted2);
+      font-size:11px;
+    }
   </style>
 </head>
+
 <body>
   <header>
     <h1>
@@ -336,23 +379,24 @@
       <span class="badge" id="modelBadge">Data Pulled from OpenAQ Database</span>
     </h1>
     <p>
-      This is a <strong>heat map</strong> for PM2.5 mass concentration in India. It uses real dataset pulled from OpenAQ, day-by-day playback skips missing days automatically.
+      Heat map for PM2.5 mass concentration in India. Day-by-day playback skips missing days automatically.
     </p>
   </header>
 
   <div class="layout">
-    <div class="panel">
-      <div class="panel-hd">
-        <div class="row">
-          <h2>Controls</h2>
-          <div class="toolbar">
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
-              Month
-              <select id="monthSelect"></select>
-            </label>
 
-            <button id="playBtn" class="btn-play" title="Play month-by-month animation">Play</button>
+    <!-- MERGED: Controls + slider inside map section -->
+    <div class="panel map-wrap">
+      <div class="map-card">
+        <div class="map-hd">
+          <div class="left">
+            <div class="title">PM2.5 mass concentration (µg/m³)</div>
+            <div class="meta" id="metaLine">Loading boundary…</div>
+          </div>
+
+          <div class="toolbar">
             <button id="playDayBtn" class="btn-play" title="Play day-by-day animation (skips missing days)" disabled>Play days</button>
+            <button id="playBtn" class="btn-play" title="Play month-by-month animation">Play</button>
 
             <span class="seg-group" title="Speed multiplier for playback">
               <span class="seg-label">speed</span>
@@ -363,57 +407,12 @@
             </span>
 
             <button id="toggleBordersBtn" class="btn-muted">Borders: on</button>
-          </div>
-        </div>
-        <div class="sub">
-          Contributor sliders + attribution tables are hidden for now (UI focus: timeline + regional averages).
-        </div>
-      </div>
 
-      <div class="panel-bd">
-        <div class="timeline" style="margin-bottom:10px;">
-          <div class="top">
-            <div class="title">Date (available days; missing days skipped)</div>
-            <div class="value" id="dateLabel">—</div>
-          </div>
-          <input id="dateSlider" type="range" min="0" max="0" step="1" value="0" disabled>
-          <div class="hint" id="dateHint">
-            Drag to scrub forward/backward with real-time rendering. When a dataset is loaded, the slider indexes only days that exist in the file.
-          </div>
-        </div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
+              Month
+              <select id="monthSelect"></select>
+            </label>
 
-        <div class="stats-grid" style="margin-bottom:10px;">
-          <div class="stat"><div class="k">India average</div><div class="v" id="meanIndia">—</div></div>
-          <div class="stat"><div class="k">Delhi NCR average</div><div class="v" id="meanDelhi">—</div></div>
-          <div class="stat"><div class="k">Kolkata average</div><div class="v" id="meanKolkata">—</div></div>
-          <div class="stat"><div class="k">Mumbai MMR average</div><div class="v" id="meanMumbai">—</div></div>
-          <div class="stat"><div class="k">Bangalore average</div><div class="v" id="meanBangalore">—</div></div>
-          <div class="stat"><div class="k">Pune average</div><div class="v" id="meanPune">—</div></div>
-          <div class="stat"><div class="k">Hyderabad average</div><div class="v" id="meanHyderabad">—</div></div>
-          <div class="stat"><div class="k">Chennai average</div><div class="v" id="meanChennai">—</div></div>
-        </div>
-
-        <div class="hidden" id="controlsRoot" style="margin-top:10px;"></div>
-
-        <div class="warnline note">
-          <strong>Boundary:</strong> the app loads a public India GeoJSON (online). If the download fails, it falls back to a coarse outline.
-        </div>
-
-        <div class="warnline note">
-          <strong>Local data note:</strong> the OpenAQ data was downloaded from OpenAQ into a JSON file and used to display the heat map.
-        </div>
-      </div>
-    </div>
-
-    <div class="panel map-wrap">
-      <div class="map-card">
-        <div class="map-hd">
-          <div class="left">
-            <div class="title">PM2.5 mass concentration (µg/m³)</div>
-            <div class="meta" id="metaLine">Loading boundary…</div>
-          </div>
-
-          <div class="toolbar">
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
               Map size
               <select id="mapSizeSelect">
@@ -425,20 +424,31 @@
               </select>
             </label>
 
-            <!-- View dropdown hidden for now -->
-            <label class="hidden" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
-              View
-              <select id="viewSelect">
-                <option value="scenario">Scenario</option>
-                <option value="baseline">Baseline</option>
-                <option value="delta">Δ (scenario − baseline)</option>
-              </select>
-            </label>
+            <!-- (1) View label + dropdown hidden/removed -->
+          </div>
+
+          <!-- Slider block inside header area (no extra text requested removed) -->
+          <div class="timeline" style="flex:1 1 100%;">
+            <div class="top">
+              <div class="title">Date</div>
+              <div class="value" id="dateLabel">—</div>
+            </div>
+            <input id="dateSlider" type="range" min="0" max="0" step="1" value="0" disabled>
           </div>
         </div>
 
         <div class="canvas-wrap" id="canvasWrap">
           <canvas id="mapCanvas"></canvas>
+
+          <!-- (4) India average as hero card (top-right) -->
+          <div class="india-hero" id="indiaHero">
+            <div class="k">India average PM2.5</div>
+            <div class="v" id="meanIndia">—</div>
+            <div class="meta">
+              <div id="heroDate">—</div>
+              <div>unit: µg/m³</div>
+            </div>
+          </div>
 
           <div class="legend" id="legend">
             <div class="lg-title" id="legendTitle">Legend</div>
@@ -449,32 +459,75 @@
           <div class="tooltip" id="tooltip"></div>
         </div>
       </div>
+    </div>
 
-      <div class="panel-bd">
-        <div class="hidden" id="tablesWrap" style="margin-top:12px;display:grid;gap:10px;">
-          <div class="note">Hidden tables placeholder</div>
+    <!-- City averages section below map, above footer -->
+    <div class="panel">
+      <div class="city-section">
+        <div class="hd">
+          <div class="t">City averages</div>
+          <div class="d" id="citySectionDate">—</div>
+        </div>
+
+        <div class="city-grid">
+          <div class="city-card">
+            <div class="name">Delhi NCR</div>
+            <div class="val" id="meanDelhi">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Mumbai MMR</div>
+            <div class="val" id="meanMumbai">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Kolkata</div>
+            <div class="val" id="meanKolkata">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Bangalore</div>
+            <div class="val" id="meanBangalore">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Pune</div>
+            <div class="val" id="meanPune">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Hyderabad</div>
+            <div class="val" id="meanHyderabad">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Chennai</div>
+            <div class="val" id="meanChennai">—</div>
+          </div>
+          <div class="city-card">
+            <div class="name">Other</div>
+            <div class="val">—</div>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 
+  <footer>
+    <div class="footer-inner">
+      <div class="foot-note">
+        <strong>Boundary:</strong> the app loads a public India GeoJSON (online). If the download fails, it falls back to a coarse outline.
+      </div>
+      <div class="foot-note">
+        <strong>Local data note:</strong> the OpenAQ data was downloaded from OpenAQ into a JSON file and used to display the heat map.
+      </div>
+      <div class="copyright">
+        © <span id="copyrightYear"></span> HiboCare International Limited. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
 <script>
-/**
- * ============================================================
- * Data + playback
- * ============================================================
- */
+document.getElementById("copyrightYear").textContent = String(new Date().getFullYear());
+
 const PM25_DATA_URL = (window.PM25_DATA_URL || "./pm25_IN_2025_joined.json");
 
-const IDW = {
-  k: 8,
-  radiusKm: 350,
-  power: 2,
-  minNeighbors: 3,
-  eps: 1e-6,
-  clampMin: 0,
-  clampMax: 500,
-};
+const IDW = { k: 8, radiusKm: 350, power: 2, minNeighbors: 3, eps: 1e-6, clampMin: 0, clampMax: 500 };
 
 const HIMALAYA_BARRIER = {
   enabled: true,
@@ -489,17 +542,12 @@ const HIMALAYA_BARRIER = {
   ],
 };
 
-const NORTH_OF_ARC_ZERO_FIELD = {
-  enabled: true,
-  padDeg: 0.15,
-  value: 0,
-};
+const NORTH_OF_ARC_ZERO_FIELD = { enabled: true, padDeg: 0.15, value: 0 };
 
 const BOUNDARY_GEOJSON_URL = "https://cdn.jsdelivr.net/npm/geojson-india@0.0.2/india.json";
 const INDIA_GEOJSON_OVERRIDE = null;
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
 const BBOX = { lonMin: 68.0, lonMax: 98.5, latMin: 6.0, latMax: 37.5 };
 const GRID = { nx: 80, ny: 80 };
 
@@ -509,41 +557,26 @@ let TIME_MODE = "month";
 let IS_SCRUBBING = false;
 
 let _renderQueued = false;
-function scheduleRender() {
+function scheduleRender(){
   if (_renderQueued) return;
   _renderQueued = true;
-  requestAnimationFrame(() => {
-    _renderQueued = false;
-    renderAll();
-  });
+  requestAnimationFrame(()=>{ _renderQueued = false; renderAll(); });
 }
 
-const ANIM = {
-  playing: false,
-  mode: "month",
-  timer: null,
-  baseIntervalMs: 750,
-  speedMult: 1,
-};
-function currentIntervalMs() {
-  return Math.max(16, Math.floor(ANIM.baseIntervalMs / (ANIM.speedMult || 1)));
-}
-function startPlayback(mode) {
+const ANIM = { playing:false, mode:"month", timer:null, baseIntervalMs:750, speedMult:1 };
+function currentIntervalMs(){ return Math.max(16, Math.floor(ANIM.baseIntervalMs / (ANIM.speedMult || 1))); }
+function startPlayback(mode){
   stopPlayback();
   ANIM.playing = true;
   ANIM.mode = mode;
   TIME_MODE = mode;
 
-  if (mode === "month") {
-    el.playBtn.textContent = "Pause";
-    el.playDayBtn.textContent = "Play days";
-  } else {
-    el.playDayBtn.textContent = "Pause";
-    el.playBtn.textContent = "Play";
-  }
+  if (mode === "month") { el.playBtn.textContent = "Pause"; el.playDayBtn.textContent = "Play days"; }
+  else { el.playDayBtn.textContent = "Pause"; el.playBtn.textContent = "Play"; }
+
   syncTemporalControls();
 
-  ANIM.timer = setInterval(() => {
+  ANIM.timer = setInterval(()=>{
     if (ANIM.mode === "month") {
       state.month = (state.month + 1) % 12;
       el.monthSelect.value = String(state.month);
@@ -557,17 +590,14 @@ function startPlayback(mode) {
     scheduleRender();
   }, currentIntervalMs());
 }
-function stopPlayback() {
+function stopPlayback(){
   ANIM.playing = false;
-  if (ANIM.timer) {
-    clearInterval(ANIM.timer);
-    ANIM.timer = null;
-  }
+  if (ANIM.timer){ clearInterval(ANIM.timer); ANIM.timer = null; }
   el.playBtn.textContent = "Play";
   el.playDayBtn.textContent = "Play days";
   syncTemporalControls();
 }
-function setSpeedMult(mult) {
+function setSpeedMult(mult){
   const m = Math.max(1, Number(mult) || 1);
   ANIM.speedMult = m;
   const btns = [el.speed1Btn, el.speed2Btn, el.speed8Btn, el.speed16Btn];
@@ -576,515 +606,430 @@ function setSpeedMult(mult) {
 }
 
 const REGIONS = [
-  { id: "India", name: "India", bbox: null },
-  { id: "DelhiNCR", name: "Delhi NCR", bbox: { lonMin: 76.5, lonMax: 78.8, latMin: 28.0, latMax: 29.8 } },
-  { id: "Kolkata",  name: "Kolkata",  bbox: { lonMin: 88.1, lonMax: 88.6, latMin: 22.3, latMax: 22.8 } },
-  { id: "MumbaiMMR",name: "Mumbai MMR",bbox: { lonMin: 72.7, lonMax: 73.2, latMin: 18.8, latMax: 19.5 } },
-  { id: "Bangalore",name: "Bangalore",bbox: { lonMin: 77.35, lonMax: 77.85, latMin: 12.75, latMax: 13.20 } },
-  { id: "Pune",     name: "Pune",     bbox: { lonMin: 73.65, lonMax: 74.05, latMin: 18.35, latMax: 18.75 } },
-  { id: "Hyderabad",name: "Hyderabad",bbox: { lonMin: 78.05, lonMax: 78.85, latMin: 17.05, latMax: 17.75 } },
-  { id: "Chennai",  name: "Chennai",  bbox: { lonMin: 79.85, lonMax: 80.55, latMin: 12.75, latMax: 13.45 } },
+  { id:"India", name:"India", bbox:null },
+  { id:"DelhiNCR", name:"Delhi NCR", bbox:{ lonMin:76.5, lonMax:78.8, latMin:28.0, latMax:29.8 } },
+  { id:"Kolkata", name:"Kolkata", bbox:{ lonMin:88.1, lonMax:88.6, latMin:22.3, latMax:22.8 } },
+  { id:"MumbaiMMR", name:"Mumbai MMR", bbox:{ lonMin:72.7, lonMax:73.2, latMin:18.8, latMax:19.5 } },
+  { id:"Bangalore", name:"Bangalore", bbox:{ lonMin:77.35, lonMax:77.85, latMin:12.75, latMax:13.20 } },
+  { id:"Pune", name:"Pune", bbox:{ lonMin:73.65, lonMax:74.05, latMin:18.35, latMax:18.75 } },
+  { id:"Hyderabad", name:"Hyderabad", bbox:{ lonMin:78.05, lonMax:78.85, latMin:17.05, latMax:17.75 } },
+  { id:"Chennai", name:"Chennai", bbox:{ lonMin:79.85, lonMax:80.55, latMin:12.75, latMax:13.45 } },
 ];
 
-function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
-function gauss2(lon, lat, lon0, lat0, sx, sy) {
-  const dx = (lon - lon0) / sx;
-  const dy = (lat - lat0) / sy;
-  return Math.exp(-(dx*dx + dy*dy));
-}
-function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
+function gauss2(lon,lat,lon0,lat0,sx,sy){ const dx=(lon-lon0)/sx, dy=(lat-lat0)/sy; return Math.exp(-(dx*dx+dy*dy)); }
+function sigmoid(x){ return 1/(1+Math.exp(-x)); }
 
-function safeNum(x) {
-  const n = (typeof x === "string") ? parseFloat(x) : Number(x);
-  return Number.isFinite(n) ? n : NaN;
-}
-function monthIndexFromDateLike(x) {
+function safeNum(x){ const n=(typeof x==="string")?parseFloat(x):Number(x); return Number.isFinite(n)?n:NaN; }
+function monthIndexFromDateLike(x){
   if (!x) return null;
-  if (typeof x === "string") {
-    const m = x.match(/^\s*(\d{4})[-\/](\d{2})/);
-    if (m) {
-      const mm = parseInt(m[2], 10);
-      if (mm >= 1 && mm <= 12) return mm - 1;
-    }
-    const d = new Date(x);
-    if (!isNaN(d.getTime())) return d.getUTCMonth();
+  if (typeof x==="string"){
+    const m=x.match(/^\s*(\d{4})[-\/](\d{2})/);
+    if (m){ const mm=parseInt(m[2],10); if (mm>=1 && mm<=12) return mm-1; }
+    const d=new Date(x); if (!isNaN(d.getTime())) return d.getUTCMonth();
     return null;
   }
-  const d = (x instanceof Date) ? x : new Date(x);
+  const d=(x instanceof Date)?x:new Date(x);
   if (!isNaN(d.getTime())) return d.getUTCMonth();
   return null;
 }
-function dateKeyFromDateLike(x) {
+function dateKeyFromDateLike(x){
   if (!x) return null;
-  if (typeof x === "string") {
-    const m = x.match(/^\s*(\d{4})[-\/](\d{2})[-\/](\d{2})/);
+  if (typeof x==="string"){
+    const m=x.match(/^\s*(\d{4})[-\/](\d{2})[-\/](\d{2})/);
     if (m) return `${m[1]}-${m[2]}-${m[3]}`;
   }
-  const d = (x instanceof Date) ? x : new Date(x);
+  const d=(x instanceof Date)?x:new Date(x);
   if (isNaN(d.getTime())) return null;
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const yyyy=d.getUTCFullYear();
+  const mm=String(d.getUTCMonth()+1).padStart(2,"0");
+  const dd=String(d.getUTCDate()).padStart(2,"0");
   return `${yyyy}-${mm}-${dd}`;
 }
-function monthIndexFromDateKey(dateKey) {
-  if (!dateKey || typeof dateKey !== "string") return null;
-  const m = dateKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+function monthIndexFromDateKey(dateKey){
+  if (!dateKey || typeof dateKey!=="string") return null;
+  const m=dateKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!m) return null;
-  const mm = parseInt(m[2], 10);
-  if (!(mm >= 1 && mm <= 12)) return null;
-  return mm - 1;
+  const mm=parseInt(m[2],10);
+  if (!(mm>=1 && mm<=12)) return null;
+  return mm-1;
 }
 
-function haversineKm(lon1, lat1, lon2, lat2) {
-  const toRad = Math.PI / 180;
-  const φ1 = lat1 * toRad, φ2 = lat2 * toRad;
-  const dφ = (lat2 - lat1) * toRad;
-  const dλ = (lon2 - lon1) * toRad;
-  const a = Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
-  return 6371 * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+function haversineKm(lon1,lat1,lon2,lat2){
+  const toRad=Math.PI/180;
+  const φ1=lat1*toRad, φ2=lat2*toRad;
+  const dφ=(lat2-lat1)*toRad;
+  const dλ=(lon2-lon1)*toRad;
+  const a=Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
+  return 6371*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
 /* GeoJSON point-in-polygon */
-function pointInRing(lon, lat, ring) {
-  let inside = false;
-  for (let i=0, j=ring.length-1; i<ring.length; j=i++) {
-    const xi = ring[i][0], yi = ring[i][1];
-    const xj = ring[j][0], yj = ring[j][1];
-    const intersect = ((yi > lat) !== (yj > lat)) &&
-      (lon < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-12) + xi);
-    if (intersect) inside = !inside;
+function pointInRing(lon,lat,ring){
+  let inside=false;
+  for (let i=0,j=ring.length-1; i<ring.length; j=i++){
+    const xi=ring[i][0], yi=ring[i][1];
+    const xj=ring[j][0], yj=ring[j][1];
+    const intersect=((yi>lat)!==(yj>lat)) && (lon < (xj-xi)*(lat-yi)/((yj-yi)||1e-12)+xi);
+    if (intersect) inside=!inside;
   }
   return inside;
 }
-function pointInPolygon(lon, lat, coords) {
-  if (!coords || coords.length === 0) return false;
-  const outer = coords[0];
-  if (!pointInRing(lon, lat, outer)) return false;
-  for (let i=1; i<coords.length; i++) {
-    if (pointInRing(lon, lat, coords[i])) return false;
-  }
+function pointInPolygon(lon,lat,coords){
+  if (!coords || coords.length===0) return false;
+  const outer=coords[0];
+  if (!pointInRing(lon,lat,outer)) return false;
+  for (let i=1;i<coords.length;i++) if (pointInRing(lon,lat,coords[i])) return false;
   return true;
 }
-function pointInGeometry(lon, lat, geom) {
+function pointInGeometry(lon,lat,geom){
   if (!geom) return false;
-  const t = geom.type;
-  const c = geom.coordinates;
-  if (t === "Polygon") return pointInPolygon(lon, lat, c);
-  if (t === "MultiPolygon") {
-    for (const poly of c) if (pointInPolygon(lon, lat, poly)) return true;
-    return false;
-  }
+  const t=geom.type, c=geom.coordinates;
+  if (t==="Polygon") return pointInPolygon(lon,lat,c);
+  if (t==="MultiPolygon"){ for (const poly of c) if (pointInPolygon(lon,lat,poly)) return true; return false; }
   return false;
 }
-function pointInGeoJSON(lon, lat, gj) {
+function pointInGeoJSON(lon,lat,gj){
   if (!gj) return false;
-  if (gj.type === "FeatureCollection") {
-    for (const f of gj.features || []) {
-      if (pointInGeometry(lon, lat, f.geometry)) return true;
-    }
-    return false;
-  }
-  if (gj.type === "Feature") return pointInGeometry(lon, lat, gj.geometry);
-  return pointInGeometry(lon, lat, gj);
+  if (gj.type==="FeatureCollection"){ for (const f of gj.features||[]) if (pointInGeometry(lon,lat,f.geometry)) return true; return false; }
+  if (gj.type==="Feature") return pointInGeometry(lon,lat,gj.geometry);
+  return pointInGeometry(lon,lat,gj);
 }
 
 /* Arc helpers */
-function himalayaLatCeilingForLon(lon) {
-  if (!HIMALAYA_BARRIER?.segments || HIMALAYA_BARRIER.segments.length === 0) return null;
-  for (const seg of HIMALAYA_BARRIER.segments) {
-    if (lon >= seg.lonMin && lon <= seg.lonMax) return seg.lat;
-  }
+function himalayaLatCeilingForLon(lon){
+  if (!HIMALAYA_BARRIER?.segments || HIMALAYA_BARRIER.segments.length===0) return null;
+  for (const seg of HIMALAYA_BARRIER.segments) if (lon>=seg.lonMin && lon<=seg.lonMax) return seg.lat;
   return null;
 }
-function isNorthOfHimalayaArc(lon, lat) {
+function isNorthOfHimalayaArc(lon,lat){
   if (!NORTH_OF_ARC_ZERO_FIELD?.enabled) return false;
-  const ceilLat = himalayaLatCeilingForLon(lon);
-  if (ceilLat === null) return false;
-  const pad = Number(NORTH_OF_ARC_ZERO_FIELD.padDeg) || 0;
-  return lat > (ceilLat + pad);
+  const ceilLat=himalayaLatCeilingForLon(lon);
+  if (ceilLat===null) return false;
+  const pad=Number(NORTH_OF_ARC_ZERO_FIELD.padDeg)||0;
+  return lat>(ceilLat+pad);
 }
-function buildHimalayaBarrierPoints() {
+function buildHimalayaBarrierPoints(){
   if (!HIMALAYA_BARRIER.enabled) return [];
-  const pts = [];
-  const v = HIMALAYA_BARRIER.value;
-  for (const seg of HIMALAYA_BARRIER.segments) {
-    for (let lon = seg.lonMin; lon <= seg.lonMax + 1e-9; lon += HIMALAYA_BARRIER.stepDegLon) {
-      const lat = seg.lat;
-      if (lon < BBOX.lonMin || lon > BBOX.lonMax || lat < BBOX.latMin || lat > BBOX.latMax) continue;
-      if (state.boundary && !pointInGeoJSON(lon, lat, state.boundary)) continue;
-      pts.push({ lon, lat, value: v, __barrier: true });
+  const pts=[];
+  const v=HIMALAYA_BARRIER.value;
+  for (const seg of HIMALAYA_BARRIER.segments){
+    for (let lon=seg.lonMin; lon<=seg.lonMax+1e-9; lon+=HIMALAYA_BARRIER.stepDegLon){
+      const lat=seg.lat;
+      if (lon<BBOX.lonMin || lon>BBOX.lonMax || lat<BBOX.latMin || lat>BBOX.latMax) continue;
+      if (state.boundary && !pointInGeoJSON(lon,lat,state.boundary)) continue;
+      pts.push({ lon, lat, value:v, __barrier:true });
     }
   }
   return pts;
 }
 
 const DATA = {
-  loaded: false,
-  url: PM25_DATA_URL,
-  stations: [],
-  monthPoints: Array.from({length:12}, () => []),
-  dayPointsByDate: new Map(),
-  availableDates: [],
-  stats: { stationCount: 0, pointsPerMonth: Array.from({length:12}, () => 0), dayCount: 0 },
+  loaded:false,
+  url:PM25_DATA_URL,
+  stations:[],
+  monthPoints:Array.from({length:12},()=>[]),
+  dayPointsByDate:new Map(),
+  availableDates:[],
+  stats:{ stationCount:0, pointsPerMonth:Array.from({length:12},()=>0), dayCount:0 },
 };
 
-const baselineGridCache = {
-  pm2: Array.from({length:12}, () => null),
-  computed: Array.from({length:12}, () => false),
-};
-
-const dailyGridCache = { maxEntries: 48, map: new Map() };
-function dailyCacheGet(dateKey) {
+const baselineGridCache = { pm2:Array.from({length:12},()=>null), computed:Array.from({length:12},()=>false) };
+const dailyGridCache = { maxEntries:48, map:new Map() };
+function dailyCacheGet(dateKey){
   if (!dailyGridCache.map.has(dateKey)) return null;
-  const v = dailyGridCache.map.get(dateKey);
+  const v=dailyGridCache.map.get(dateKey);
   dailyGridCache.map.delete(dateKey);
-  dailyGridCache.map.set(dateKey, v);
+  dailyGridCache.map.set(dateKey,v);
   return v;
 }
-function dailyCacheSet(dateKey, grid) {
+function dailyCacheSet(dateKey, grid){
   if (dailyGridCache.map.has(dateKey)) dailyGridCache.map.delete(dateKey);
   dailyGridCache.map.set(dateKey, grid);
-  while (dailyGridCache.map.size > dailyGridCache.maxEntries) {
-    const firstKey = dailyGridCache.map.keys().next().value;
+  while (dailyGridCache.map.size>dailyGridCache.maxEntries){
+    const firstKey=dailyGridCache.map.keys().next().value;
     dailyGridCache.map.delete(firstKey);
   }
 }
-function invalidateAllBaselineCaches() {
-  for (let m=0; m<12; m++) {
-    baselineGridCache.pm2[m] = null;
-    baselineGridCache.computed[m] = false;
-  }
+function invalidateAllBaselineCaches(){
+  for (let m=0;m<12;m++){ baselineGridCache.pm2[m]=null; baselineGridCache.computed[m]=false; }
   dailyGridCache.map.clear();
 }
 
-function idwAt(lon, lat, points) {
-  if (!points || points.length === 0) return NaN;
-  const k = IDW.k;
-  const radius = IDW.radiusKm;
-  const power = IDW.power;
-  const eps = IDW.eps;
+function idwAt(lon,lat,points){
+  if (!points || points.length===0) return NaN;
+  const k=IDW.k, radius=IDW.radiusKm, power=IDW.power, eps=IDW.eps;
 
-  const best = [];
-  let nearestD = Infinity;
-  let nearestV = NaN;
+  const best=[];
+  let nearestD=Infinity;
+  let nearestV=NaN;
 
-  for (let i=0; i<points.length; i++) {
-    const p = points[i];
-    const d = haversineKm(lon, lat, p.lon, p.lat);
+  for (let i=0;i<points.length;i++){
+    const p=points[i];
+    const d=haversineKm(lon,lat,p.lon,p.lat);
+    if (d<nearestD){ nearestD=d; nearestV=p.value; }
+    if (d<1e-6) return p.value;
 
-    if (d < nearestD) { nearestD = d; nearestV = p.value; }
-    if (d < 1e-6) return p.value;
+    if (Number.isFinite(radius) && d>radius) continue;
+    if (p.__barrier && Number.isFinite(HIMALAYA_BARRIER.radiusKm) && d>HIMALAYA_BARRIER.radiusKm) continue;
 
-    if (Number.isFinite(radius) && d > radius) continue;
-    if (p.__barrier && Number.isFinite(HIMALAYA_BARRIER.radiusKm) && d > HIMALAYA_BARRIER.radiusKm) continue;
-
-    if (best.length < k) {
-      best.push({ d, v: p.value });
-      if (best.length === k) best.sort((a,b)=>b.d-a.d);
-    } else if (d < best[0].d) {
-      best[0] = { d, v: p.value };
+    if (best.length<k){
+      best.push({ d, v:p.value });
+      if (best.length===k) best.sort((a,b)=>b.d-a.d);
+    } else if (d<best[0].d){
+      best[0]={ d, v:p.value };
       best.sort((a,b)=>b.d-a.d);
     }
   }
 
   if (best.length < IDW.minNeighbors) return nearestV;
 
-  let sw = 0, sv = 0;
-  for (const b of best) {
-    const w = 1 / (Math.pow(b.d, power) + eps);
-    sw += w; sv += w * b.v;
+  let sw=0, sv=0;
+  for (const b of best){
+    const w=1/(Math.pow(b.d,power)+eps);
+    sw += w; sv += w*b.v;
   }
-  return (sw > 0) ? (sv / sw) : nearestV;
+  return (sw>0) ? (sv/sw) : nearestV;
 }
 
-function lonLatFromGrid(ix, iy) {
-  const lon = BBOX.lonMin + (ix + 0.5) * (BBOX.lonMax - BBOX.lonMin) / GRID.nx;
-  const lat = BBOX.latMax - (iy + 0.5) * (BBOX.latMax - BBOX.latMin) / GRID.ny;
+function lonLatFromGrid(ix,iy){
+  const lon=BBOX.lonMin + (ix+0.5)*(BBOX.lonMax-BBOX.lonMin)/GRID.nx;
+  const lat=BBOX.latMax - (iy+0.5)*(BBOX.latMax-BBOX.latMin)/GRID.ny;
   return { lon, lat };
 }
 
-function ensureBaselineGridForMonth(m) {
+function ensureBaselineGridForMonth(m){
   if (baselineGridCache.computed[m] && baselineGridCache.pm2[m]) return;
-  const arr = new Float32Array(GRID.nx * GRID.ny);
-  arr.fill(NaN);
+  const arr=new Float32Array(GRID.nx*GRID.ny); arr.fill(NaN);
 
-  const basePoints = (DATA.loaded ? DATA.monthPoints[m] : null) || [];
-  const barrierPoints = buildHimalayaBarrierPoints();
-  const points = basePoints.concat(barrierPoints);
+  const basePoints=(DATA.loaded?DATA.monthPoints[m]:null)||[];
+  const barrierPoints=buildHimalayaBarrierPoints();
+  const points=basePoints.concat(barrierPoints);
 
-  if (!points || points.length === 0) {
-    baselineGridCache.pm2[m] = arr;
-    baselineGridCache.computed[m] = true;
-    return;
+  if (!points || points.length===0){
+    baselineGridCache.pm2[m]=arr; baselineGridCache.computed[m]=true; return;
   }
-
-  for (let iy=0; iy<GRID.ny; iy++) {
-    for (let ix=0; ix<GRID.nx; ix++) {
-      const { lon, lat } = lonLatFromGrid(ix, iy);
-      let v = idwAt(lon, lat, points);
-      if (Number.isFinite(v)) v = clamp(v, IDW.clampMin, IDW.clampMax);
+  for (let iy=0; iy<GRID.ny; iy++){
+    for (let ix=0; ix<GRID.nx; ix++){
+      const { lon, lat } = lonLatFromGrid(ix,iy);
+      let v=idwAt(lon,lat,points);
+      if (Number.isFinite(v)) v=clamp(v, IDW.clampMin, IDW.clampMax);
       arr[iy*GRID.nx + ix] = v;
     }
   }
-
-  baselineGridCache.pm2[m] = arr;
-  baselineGridCache.computed[m] = true;
+  baselineGridCache.pm2[m]=arr;
+  baselineGridCache.computed[m]=true;
 }
 
-function ensureBaselineGridForDate(dateKey) {
+function ensureBaselineGridForDate(dateKey){
   if (!DATA.loaded || !dateKey) return null;
-  const cached = dailyCacheGet(dateKey);
+  const cached=dailyCacheGet(dateKey);
   if (cached) return cached;
 
-  const basePoints = DATA.dayPointsByDate.get(dateKey) || [];
-  const barrierPoints = buildHimalayaBarrierPoints();
-  const points = basePoints.concat(barrierPoints);
+  const basePoints=DATA.dayPointsByDate.get(dateKey)||[];
+  const barrierPoints=buildHimalayaBarrierPoints();
+  const points=basePoints.concat(barrierPoints);
 
-  const arr = new Float32Array(GRID.nx * GRID.ny);
-  arr.fill(NaN);
+  const arr=new Float32Array(GRID.nx*GRID.ny); arr.fill(NaN);
+  if (!points || points.length===0){ dailyCacheSet(dateKey,arr); return arr; }
 
-  if (!points || points.length === 0) {
-    dailyCacheSet(dateKey, arr);
-    return arr;
-  }
-
-  for (let iy=0; iy<GRID.ny; iy++) {
-    for (let ix=0; ix<GRID.nx; ix++) {
-      const { lon, lat } = lonLatFromGrid(ix, iy);
-      let v = idwAt(lon, lat, points);
-      if (Number.isFinite(v)) v = clamp(v, IDW.clampMin, IDW.clampMax);
+  for (let iy=0; iy<GRID.ny; iy++){
+    for (let ix=0; ix<GRID.nx; ix++){
+      const { lon, lat } = lonLatFromGrid(ix,iy);
+      let v=idwAt(lon,lat,points);
+      if (Number.isFinite(v)) v=clamp(v, IDW.clampMin, IDW.clampMax);
       arr[iy*GRID.nx + ix] = v;
     }
   }
-
   dailyCacheSet(dateKey, arr);
   return arr;
 }
 
-/* Synthetic baseline fallback */
-function monthSeasonScalar(m) {
-  return [1.25,1.18,1.05,0.98,0.92,0.85,0.78,0.78,0.88,1.05,1.22,1.28][m];
-}
-function baselineRemovalRatesByMonth(m) {
-  const rVentBase = [0.10,0.11,0.14,0.18,0.22,0.32,0.38,0.36,0.28,0.18,0.12,0.10][m];
-  const rRainBase = [0.02,0.02,0.03,0.05,0.10,0.22,0.40,0.42,0.25,0.08,0.03,0.02][m];
+/* Synthetic fallback baseline */
+function monthSeasonScalar(m){ return [1.25,1.18,1.05,0.98,0.92,0.85,0.78,0.78,0.88,1.05,1.22,1.28][m]; }
+function baselineRemovalRatesByMonth(m){
+  const rVentBase=[0.10,0.11,0.14,0.18,0.22,0.32,0.38,0.36,0.28,0.18,0.12,0.10][m];
+  const rRainBase=[0.02,0.02,0.03,0.05,0.10,0.22,0.40,0.42,0.25,0.08,0.03,0.02][m];
   return { rVentBase, rRainBase };
 }
-const componentMonthlyWeightsCache = Array.from({length:12}, () => null);
-function componentMonthlyWeights(m) {
+const componentMonthlyWeightsCache=Array.from({length:12},()=>null);
+function componentMonthlyWeights(m){
   if (componentMonthlyWeightsCache[m]) return componentMonthlyWeightsCache[m];
-  const w = {
-    residential: [0.22,0.22,0.20,0.18,0.17,0.16,0.15,0.15,0.16,0.19,0.21,0.22][m],
-    transport:    [0.12,0.12,0.12,0.12,0.12,0.11,0.10,0.10,0.11,0.12,0.12,0.12][m],
-    industry:     [0.15,0.15,0.15,0.15,0.15,0.15,0.14,0.14,0.14,0.15,0.15,0.15][m],
-    power:        [0.08,0.08,0.08,0.08,0.09,0.09,0.09,0.09,0.09,0.08,0.08,0.08][m],
-    roadDust:     [0.16,0.16,0.18,0.20,0.22,0.20,0.15,0.14,0.16,0.20,0.18,0.17][m],
-    wasteBurn:    [0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.05,0.05,0.04][m],
-    regionalBg:   [0.16,0.16,0.15,0.14,0.13,0.12,0.15,0.16,0.17,0.14,0.14,0.16][m],
-    fires:        [0.03,0.03,0.04,0.05,0.04,0.03,0.02,0.02,0.03,0.08,0.10,0.05][m],
-    desertDust:   [0.04,0.04,0.04,0.04,0.04,0.10,0.16,0.16,0.09,0.04,0.02,0.03][m],
+  const w={
+    residential:[0.22,0.22,0.20,0.18,0.17,0.16,0.15,0.15,0.16,0.19,0.21,0.22][m],
+    transport:[0.12,0.12,0.12,0.12,0.12,0.11,0.10,0.10,0.11,0.12,0.12,0.12][m],
+    industry:[0.15,0.15,0.15,0.15,0.15,0.15,0.14,0.14,0.14,0.15,0.15,0.15][m],
+    power:[0.08,0.08,0.08,0.08,0.09,0.09,0.09,0.09,0.09,0.08,0.08,0.08][m],
+    roadDust:[0.16,0.16,0.18,0.20,0.22,0.20,0.15,0.14,0.16,0.20,0.18,0.17][m],
+    wasteBurn:[0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.05,0.05,0.04][m],
+    regionalBg:[0.16,0.16,0.15,0.14,0.13,0.12,0.15,0.16,0.17,0.14,0.14,0.16][m],
+    fires:[0.03,0.03,0.04,0.05,0.04,0.03,0.02,0.02,0.03,0.08,0.10,0.05][m],
+    desertDust:[0.04,0.04,0.04,0.04,0.04,0.10,0.16,0.16,0.09,0.04,0.02,0.03][m],
   };
-  const sum = Object.values(w).reduce((a,b)=>a+b,0);
-  for (const k of Object.keys(w)) w[k] /= sum;
-  componentMonthlyWeightsCache[m] = w;
+  const sum=Object.values(w).reduce((a,b)=>a+b,0);
+  for (const k of Object.keys(w)) w[k]/=sum;
+  componentMonthlyWeightsCache[m]=w;
   return w;
 }
-function spatialPattern(id, lon, lat, m) {
-  const delhi = gauss2(lon, lat, 77.21, 28.61, 2.4, 2.0);
-  const mumbai = gauss2(lon, lat, 72.88, 19.08, 2.2, 2.0);
-  const kolkata = gauss2(lon, lat, 88.36, 22.57, 2.2, 2.0);
-  const chennai = gauss2(lon, lat, 80.27, 13.08, 2.2, 2.0);
-  const bengaluru = gauss2(lon, lat, 77.59, 12.97, 2.2, 2.0);
-  const hyderabad = gauss2(lon, lat, 78.49, 17.39, 2.2, 2.0);
+function spatialPattern(id, lon, lat, m){
+  const delhi=gauss2(lon,lat,77.21,28.61,2.4,2.0);
+  const mumbai=gauss2(lon,lat,72.88,19.08,2.2,2.0);
+  const kolkata=gauss2(lon,lat,88.36,22.57,2.2,2.0);
+  const chennai=gauss2(lon,lat,80.27,13.08,2.2,2.0);
+  const bengaluru=gauss2(lon,lat,77.59,12.97,2.2,2.0);
+  const hyderabad=gauss2(lon,lat,78.49,17.39,2.2,2.0);
+  const igpBand=Math.exp(-Math.pow((lat-27.0)/2.8,2))*sigmoid((lon-72.0)/2.0)*sigmoid((92.0-lon)/2.0);
+  const thar=gauss2(lon,lat,72.5,27.5,4.0,3.5)+gauss2(lon,lat,73.0,24.0,4.5,3.5);
+  const coast=Math.max(gauss2(lon,lat,72.5,15.0,5.0,5.0), gauss2(lon,lat,84.5,15.5,5.5,5.5));
+  const nwFires=gauss2(lon,lat,75.0,30.0,3.2,2.2);
+  const ceFires=gauss2(lon,lat,83.0,20.0,4.0,3.0);
+  const idx=m;
+  const fireSeason=(idx===9||idx===10)?1.0:(idx===2||idx===3?0.55:0.25);
 
-  const igpBand = Math.exp(-Math.pow((lat - 27.0) / 2.8, 2)) * sigmoid((lon - 72.0) / 2.0) * sigmoid((92.0 - lon) / 2.0);
-  const thar = gauss2(lon, lat, 72.5, 27.5, 4.0, 3.5) + gauss2(lon, lat, 73.0, 24.0, 4.5, 3.5);
-  const coast = Math.max(
-    gauss2(lon, lat, 72.5, 15.0, 5.0, 5.0),
-    gauss2(lon, lat, 84.5, 15.5, 5.5, 5.5)
-  );
-
-  const nwFires = gauss2(lon, lat, 75.0, 30.0, 3.2, 2.2);
-  const ceFires = gauss2(lon, lat, 83.0, 20.0, 4.0, 3.0);
-  const idx = m;
-  const fireSeason = (idx === 9 || idx === 10) ? 1.0 : (idx === 2 || idx === 3 ? 0.55 : 0.25);
-
-  switch (id) {
-    case "residential":
-      return clamp(0.30*igpBand + 0.25*(delhi+kolkata) + 0.18*(bengaluru+hyderabad) + 0.10*(1-coast), 0, 1);
-    case "transport":
-      return clamp(0.35*(delhi+mumbai+kolkata+chennai+bengaluru+hyderabad) + 0.18*igpBand, 0, 1);
-    case "industry":
-      return clamp(0.28*igpBand + 0.20*(mumbai+kolkata) + 0.10*gauss2(lon,lat,76.0,23.0,4.5,3.5), 0, 1);
-    case "power":
-      return clamp(0.22*igpBand + 0.14*gauss2(lon,lat,84.0,24.0,5.0,3.8) + 0.10*gauss2(lon,lat,78.0,22.0,5.0,4.0), 0, 1);
+  switch(id){
+    case "residential": return clamp(0.30*igpBand + 0.25*(delhi+kolkata) + 0.18*(bengaluru+hyderabad) + 0.10*(1-coast), 0, 1);
+    case "transport": return clamp(0.35*(delhi+mumbai+kolkata+chennai+bengaluru+hyderabad) + 0.18*igpBand, 0, 1);
+    case "industry": return clamp(0.28*igpBand + 0.20*(mumbai+kolkata) + 0.10*gauss2(lon,lat,76.0,23.0,4.5,3.5), 0, 1);
+    case "power": return clamp(0.22*igpBand + 0.14*gauss2(lon,lat,84.0,24.0,5.0,3.8) + 0.10*gauss2(lon,lat,78.0,22.0,5.0,4.0), 0, 1);
     case "roadDust":
-      const dryness = [1.0,1.0,0.95,0.92,0.88,0.75,0.55,0.55,0.70,0.90,0.98,1.0][idx];
+      const dryness=[1.0,1.0,0.95,0.92,0.88,0.75,0.55,0.55,0.70,0.90,0.98,1.0][idx];
       return clamp(dryness*(0.30*thar + 0.25*igpBand + 0.15*(delhi+mumbai)), 0, 1);
-    case "wasteBurn":
-      return clamp(0.18*igpBand + 0.10*(delhi+kolkata) + 0.10*gauss2(lon,lat,80.0,24.0,6.0,4.0), 0, 1);
-    case "regionalBg":
-      return clamp(0.55 + 0.25*Math.exp(-Math.pow((lat-26)/7.0,2)) - 0.15*coast, 0, 1);
-    case "fires":
-      return clamp(fireSeason*(0.65*nwFires + 0.45*ceFires + 0.20*igpBand), 0, 1);
+    case "wasteBurn": return clamp(0.18*igpBand + 0.10*(delhi+kolkata) + 0.10*gauss2(lon,lat,80.0,24.0,6.0,4.0), 0, 1);
+    case "regionalBg": return clamp(0.55 + 0.25*Math.exp(-Math.pow((lat-26)/7.0,2)) - 0.15*coast, 0, 1);
+    case "fires": return clamp(fireSeason*(0.65*nwFires + 0.45*ceFires + 0.20*igpBand), 0, 1);
     case "desertDust":
-      const dustSeason = [0.35,0.35,0.40,0.45,0.55,0.85,1.00,0.95,0.70,0.40,0.30,0.30][idx];
+      const dustSeason=[0.35,0.35,0.40,0.45,0.55,0.85,1.00,0.95,0.70,0.40,0.30,0.30][idx];
       return clamp(dustSeason*(0.75*thar + 0.18*igpBand), 0, 1);
-    default:
-      return 0.0;
+    default: return 0;
   }
 }
-function applyRemovalSequential(M0, rVent, rRain) {
-  const M1 = M0 * (1 - rVent);
-  const M2 = M1 * (1 - rRain);
+function applyRemovalSequential(M0,rVent,rRain){
+  const M1=M0*(1-rVent);
+  const M2=M1*(1-rRain);
   return { M2 };
 }
-function syntheticBaselinePM_PostRemoval(lon, lat, m) {
-  const weights = componentMonthlyWeights(m);
-  const season = monthSeasonScalar(m);
-  const floor = 10.0;
-  const amplitude = 160.0;
+function syntheticBaselinePM_PostRemoval(lon,lat,m){
+  const weights=componentMonthlyWeights(m);
+  const season=monthSeasonScalar(m);
+  const floor=10.0, amplitude=160.0;
 
-  let patternSum = 0;
-  for (const k of Object.keys(weights)) patternSum += weights[k] * spatialPattern(k, lon, lat, m);
+  let patternSum=0;
+  for (const k of Object.keys(weights)) patternSum += weights[k]*spatialPattern(k,lon,lat,m);
 
-  const M0 = floor + amplitude * patternSum * season;
-  const { rVentBase, rRainBase } = baselineRemovalRatesByMonth(m);
+  const M0=floor + amplitude*patternSum*season;
+  const { rVentBase, rRainBase }=baselineRemovalRatesByMonth(m);
   return applyRemovalSequential(M0, rVentBase, rRainBase).M2;
 }
 
-function baselinePM_PostRemoval_Month(lon, lat, m, ix=null, iy=null) {
-  if (DATA.loaded) {
+function baselinePM_PostRemoval_Month(lon,lat,m,ix=null,iy=null){
+  if (DATA.loaded){
     ensureBaselineGridForMonth(m);
-    if (ix !== null && iy !== null) {
-      const v = baselineGridCache.pm2[m][iy*GRID.nx + ix];
+    if (ix!==null && iy!==null){
+      const v=baselineGridCache.pm2[m][iy*GRID.nx + ix];
       if (Number.isFinite(v)) return v;
     } else {
-      const fx = (lon - BBOX.lonMin) / (BBOX.lonMax - BBOX.lonMin);
-      const fy = (BBOX.latMax - lat) / (BBOX.latMax - BBOX.latMin);
-      const iix = clamp(Math.floor(fx * GRID.nx), 0, GRID.nx-1);
-      const iiy = clamp(Math.floor(fy * GRID.ny), 0, GRID.ny-1);
-      const v = baselineGridCache.pm2[m][iiy*GRID.nx + iix];
+      const fx=(lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin);
+      const fy=(BBOX.latMax-lat)/(BBOX.latMax-BBOX.latMin);
+      const iix=clamp(Math.floor(fx*GRID.nx),0,GRID.nx-1);
+      const iiy=clamp(Math.floor(fy*GRID.ny),0,GRID.ny-1);
+      const v=baselineGridCache.pm2[m][iiy*GRID.nx + iix];
       if (Number.isFinite(v)) return v;
     }
   }
-  return syntheticBaselinePM_PostRemoval(lon, lat, m);
+  return syntheticBaselinePM_PostRemoval(lon,lat,m);
 }
-function baselinePM_PostRemoval_Day(lon, lat, dateKey, ix=null, iy=null) {
-  const m = monthIndexFromDateKey(dateKey);
-  const mm = (m === null ? 0 : m);
+function baselinePM_PostRemoval_Day(lon,lat,dateKey,ix=null,iy=null){
+  const m=monthIndexFromDateKey(dateKey);
+  const mm=(m===null?0:m);
 
-  if (DATA.loaded) {
-    const grid = ensureBaselineGridForDate(dateKey);
-    if (grid) {
-      if (ix !== null && iy !== null) {
-        const v = grid[iy*GRID.nx + ix];
+  if (DATA.loaded){
+    const grid=ensureBaselineGridForDate(dateKey);
+    if (grid){
+      if (ix!==null && iy!==null){
+        const v=grid[iy*GRID.nx + ix];
         if (Number.isFinite(v)) return v;
       } else {
-        const fx = (lon - BBOX.lonMin) / (BBOX.lonMax - BBOX.lonMin);
-        const fy = (BBOX.latMax - lat) / (BBOX.latMax - BBOX.latMin);
-        const iix = clamp(Math.floor(fx * GRID.nx), 0, GRID.nx-1);
-        const iiy = clamp(Math.floor(fy * GRID.ny), 0, GRID.ny-1);
-        const v = grid[iiy*GRID.nx + iix];
+        const fx=(lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin);
+        const fy=(BBOX.latMax-lat)/(BBOX.latMax-BBOX.latMin);
+        const iix=clamp(Math.floor(fx*GRID.nx),0,GRID.nx-1);
+        const iiy=clamp(Math.floor(fy*GRID.ny),0,GRID.ny-1);
+        const v=grid[iiy*GRID.nx + iix];
         if (Number.isFinite(v)) return v;
       }
     }
   }
-  return syntheticBaselinePM_PostRemoval(lon, lat, mm);
+  return syntheticBaselinePM_PostRemoval(lon,lat,mm);
 }
 
-function scenarioPM_PostRemoval_Month(lon, lat, m) { return baselinePM_PostRemoval_Month(lon, lat, m); }
-function scenarioPM_PostRemoval_Day(lon, lat, dateKey) { return baselinePM_PostRemoval_Day(lon, lat, dateKey); }
+function scenarioPM_PostRemoval_Month(lon,lat,m){ return baselinePM_PostRemoval_Month(lon,lat,m); }
+function scenarioPM_PostRemoval_Day(lon,lat,dateKey){ return baselinePM_PostRemoval_Day(lon,lat,dateKey); }
 
-function applyNorthOfArcZero(lon, lat, pm) {
+function applyNorthOfArcZero(lon,lat,pm){
   if (!NORTH_OF_ARC_ZERO_FIELD.enabled) return pm;
-  if (!isNorthOfHimalayaArc(lon, lat)) return pm;
+  if (!isNorthOfHimalayaArc(lon,lat)) return pm;
   return NORTH_OF_ARC_ZERO_FIELD.value;
 }
 
 /* Colors */
-const PM_BLUE = "#22c55e";
-const PM_YELLOW = "#facc15";
-const PM_RAMP_BREAKS = [15, 35, 55, 75, 150, 250];
-const PM_RAMP_COLORS = ["#fbb83c", "#fb883c", "#fb5f3c", "#c91dcc", "#742375", "#6b3287"];
-function hexToRgb(hex) {
-  const h = hex.replace("#","").trim();
-  const n = parseInt(h, 16);
-  return { r: (n>>16)&255, g: (n>>8)&255, b: n&255 };
-}
-function lerp(a,b,t){ return a + (b-a)*t; }
-function rampColor(x, breaks, colors) {
-  const min = breaks[0], max = breaks[breaks.length-1];
-  const v = clamp(x, min, max);
-  for (let i=0; i<breaks.length-1; i++) {
-    const a = breaks[i], b = breaks[i+1];
-    if (v >= a && v <= b) {
-      const t = (b===a) ? 0 : (v-a)/(b-a);
-      const c1 = hexToRgb(colors[i]);
-      const c2 = hexToRgb(colors[i+1]);
-      const r = Math.round(lerp(c1.r,c2.r,t));
-      const g = Math.round(lerp(c1.g,c2.g,t));
-      const bb = Math.round(lerp(c1.b,c2.b,t));
+const PM_BLUE="#22c55e";
+const PM_YELLOW="#facc15";
+const PM_RAMP_BREAKS=[15,35,55,75,150,250];
+const PM_RAMP_COLORS=["#fbb83c","#fb883c","#fb5f3c","#c91dcc","#742375","#6b3287"];
+function hexToRgb(hex){ const h=hex.replace("#","").trim(); const n=parseInt(h,16); return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 }; }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function rampColor(x, breaks, colors){
+  const min=breaks[0], max=breaks[breaks.length-1];
+  const v=clamp(x,min,max);
+  for (let i=0;i<breaks.length-1;i++){
+    const a=breaks[i], b=breaks[i+1];
+    if (v>=a && v<=b){
+      const t=(b===a)?0:(v-a)/(b-a);
+      const c1=hexToRgb(colors[i]);
+      const c2=hexToRgb(colors[i+1]);
+      const r=Math.round(lerp(c1.r,c2.r,t));
+      const g=Math.round(lerp(c1.g,c2.g,t));
+      const bb=Math.round(lerp(c1.b,c2.b,t));
       return `rgb(${r},${g},${bb})`;
     }
   }
   return colors[colors.length-1];
 }
-function pmToColor(pm) {
+function pmToColor(pm){
   if (!isFinite(pm)) return "rgba(0,0,0,0)";
-  if (pm < 5) return PM_BLUE;
-  if (pm < 15) return PM_YELLOW;
+  if (pm<5) return PM_BLUE;
+  if (pm<15) return PM_YELLOW;
   return rampColor(pm, PM_RAMP_BREAKS, PM_RAMP_COLORS);
 }
-function deltaToColor(delta) {
-  const lim = 60;
-  const x = clamp(delta, -lim, lim);
-  const t = (x + lim) / (2*lim);
-  const cNeg = hexToRgb("#60a5fa");
-  const cMid = hexToRgb("#111827");
-  const cPos = hexToRgb("#fb7185");
-  let c1, c2, tt;
-  if (t < 0.5) { c1 = cNeg; c2 = cMid; tt = t / 0.5; }
-  else { c1 = cMid; c2 = cPos; tt = (t-0.5)/0.5; }
-  const r = Math.round(lerp(c1.r,c2.r,tt));
-  const g = Math.round(lerp(c1.g,c2.g,tt));
-  const b = Math.round(lerp(c1.b,c2.b,tt));
+function deltaToColor(delta){
+  const lim=60;
+  const x=clamp(delta,-lim,lim);
+  const t=(x+lim)/(2*lim);
+  const cNeg=hexToRgb("#60a5fa"), cMid=hexToRgb("#111827"), cPos=hexToRgb("#fb7185");
+  let c1,c2,tt;
+  if (t<0.5){ c1=cNeg; c2=cMid; tt=t/0.5; }
+  else { c1=cMid; c2=cPos; tt=(t-0.5)/0.5; }
+  const r=Math.round(lerp(c1.r,c2.r,tt));
+  const g=Math.round(lerp(c1.g,c2.g,tt));
+  const b=Math.round(lerp(c1.b,c2.b,tt));
   return `rgb(${r},${g},${b})`;
 }
 
-/* NEW: slightly darken a CSS rgb/rgba color */
-function parseCssRgb(str) {
-  const s = String(str).trim();
-  const m = s.match(/^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)$/i);
+function parseCssRgb(str){
+  const s=String(str).trim();
+  const m=s.match(/^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)$/i);
   if (!m) return null;
-  return {
-    r: clamp(parseFloat(m[1]), 0, 255),
-    g: clamp(parseFloat(m[2]), 0, 255),
-    b: clamp(parseFloat(m[3]), 0, 255),
-    a: (m[4] !== undefined) ? clamp(parseFloat(m[4]), 0, 1) : 1
-  };
+  return { r:clamp(parseFloat(m[1]),0,255), g:clamp(parseFloat(m[2]),0,255), b:clamp(parseFloat(m[3]),0,255), a:(m[4]!==undefined)?clamp(parseFloat(m[4]),0,1):1 };
 }
-function darkenCssColor(cssColor, factor=0.80, alphaScale=0.55) {
-  // factor < 1 => darker. alphaScale < 1 => fainter.
-  const p = parseCssRgb(cssColor);
+function darkenCssColor(cssColor, factor=0.80, alphaScale=0.55){
+  const p=parseCssRgb(cssColor);
   if (!p) return cssColor;
-  const r = Math.round(p.r * factor);
-  const g = Math.round(p.g * factor);
-  const b = Math.round(p.b * factor);
-  const a = clamp(p.a * alphaScale, 0, 1);
+  const r=Math.round(p.r*factor), g=Math.round(p.g*factor), b=Math.round(p.b*factor);
+  const a=clamp(p.a*alphaScale,0,1);
   return `rgba(${r},${g},${b},${a})`;
 }
 
 /* State + elements */
-const state = {
-  month: 0,
-  dayIndex: 0,
-  boundary: null,
-  boundaryLoadedFrom: null,
-  mask: null,
-  mapSizePct: 100,
-};
+const state = { month:0, dayIndex:0, boundary:null, boundaryLoadedFrom:null, mask:null, mapSizePct:100 };
 
 const el = {
   monthSelect: document.getElementById("monthSelect"),
@@ -1096,9 +1041,7 @@ const el = {
   speed16Btn: document.getElementById("speed16Btn"),
   dateSlider: document.getElementById("dateSlider"),
   dateLabel: document.getElementById("dateLabel"),
-  dateHint: document.getElementById("dateHint"),
   toggleBordersBtn: document.getElementById("toggleBordersBtn"),
-  viewSelect: document.getElementById("viewSelect"),
   mapSizeSelect: document.getElementById("mapSizeSelect"),
   metaLine: document.getElementById("metaLine"),
   modelBadge: document.getElementById("modelBadge"),
@@ -1113,589 +1056,505 @@ const el = {
   meanPune: document.getElementById("meanPune"),
   meanHyderabad: document.getElementById("meanHyderabad"),
   meanChennai: document.getElementById("meanChennai"),
+  heroDate: document.getElementById("heroDate"),
+  citySectionDate: document.getElementById("citySectionDate"),
   legendTitle: document.getElementById("legendTitle"),
   legendBar: document.getElementById("legendBar"),
   legendTicks: document.getElementById("legendTicks"),
 };
 
-function setMapSizePct(pct) {
-  const p = clamp(parseInt(pct, 10) || 100, 10, 100);
-  state.mapSizePct = p;
+function setMapSizePct(pct){
+  const p=clamp(parseInt(pct,10)||100,10,100);
+  state.mapSizePct=p;
   el.canvasWrap.style.width = `${p}%`;
   scheduleRender();
 }
 
-function formatUg(x) {
+function formatUg(x){
   if (!isFinite(x)) return "—";
   return `${x.toFixed(1)} <small>µg/m³</small>`;
 }
 
-function getCurrentTemporalContext() {
-  if (TIME_MODE === "day" && DATA.loaded && DATA.availableDates.length > 0) {
-    const idx = clamp(state.dayIndex, 0, DATA.availableDates.length - 1);
-    const dateKey = DATA.availableDates[idx];
-    const m = monthIndexFromDateKey(dateKey);
-    return { mode: "day", dateKey, month: (m === null ? 0 : m), dayIndex: idx };
+function getCurrentTemporalContext(){
+  if (TIME_MODE==="day" && DATA.loaded && DATA.availableDates.length>0){
+    const idx=clamp(state.dayIndex,0,DATA.availableDates.length-1);
+    const dateKey=DATA.availableDates[idx];
+    const m=monthIndexFromDateKey(dateKey);
+    return { mode:"day", dateKey, month:(m===null?0:m), dayIndex:idx };
   }
-  return { mode: "month", dateKey: null, month: state.month, dayIndex: null };
+  return { mode:"month", dateKey:null, month:state.month, dayIndex:null };
 }
 
-function updateDateLabel() {
-  if (DATA.loaded && DATA.availableDates.length > 0) {
-    const dk = DATA.availableDates[clamp(state.dayIndex, 0, DATA.availableDates.length - 1)];
+function updateDateLabel(){
+  const tctx = getCurrentTemporalContext();
+  if (tctx.mode === "day" && DATA.loaded && DATA.availableDates.length>0){
+    const dk = DATA.availableDates[clamp(state.dayIndex,0,DATA.availableDates.length-1)];
     const m = monthIndexFromDateKey(dk);
-    const mm = (m === null ? "?" : MONTHS[m]);
-    el.dateLabel.textContent = `${dk} (${mm})  [${state.dayIndex + 1}/${DATA.availableDates.length}]`;
+    const mm = (m===null?"?":MONTHS[m]);
+    el.dateLabel.textContent = `${dk} (${mm})  [${state.dayIndex+1}/${DATA.availableDates.length}]`;
   } else {
-    el.dateLabel.textContent = "—";
+    el.dateLabel.textContent = `Month: ${MONTHS[state.month]}`;
   }
 
-  if (!DATA.loaded) {
-    el.dateHint.textContent = "Load a dataset with dates to enable day scrubbing/playback (missing days are skipped automatically).";
-  } else if (DATA.availableDates.length === 0) {
-    el.dateHint.textContent = "Dataset loaded but no parseable dates were found. Day playback is disabled.";
-  } else {
-    el.dateHint.textContent = "Drag the slider to scrub (back/forward) and the map will update. Missing days are skipped (only available days exist on this slider).";
-  }
+  const tag = (tctx.mode==="day") ? `date=${tctx.dateKey}` : `month=${MONTHS[tctx.month]}`;
+  el.heroDate.textContent = tag;
+  el.citySectionDate.textContent = tag;
 }
 
-function syncTemporalControls() {
-  const dayEnabled = (DATA.loaded && DATA.availableDates.length > 0);
+function syncTemporalControls(){
+  const dayEnabled = (DATA.loaded && DATA.availableDates.length>0);
   el.playDayBtn.disabled = !dayEnabled;
   el.dateSlider.disabled = !dayEnabled;
   el.monthSelect.disabled = false;
 
-  if (dayEnabled) {
-    el.dateSlider.min = "0";
-    el.dateSlider.max = String(Math.max(0, DATA.availableDates.length - 1));
-    el.dateSlider.step = "1";
-    if (!IS_SCRUBBING) el.dateSlider.value = String(clamp(state.dayIndex, 0, DATA.availableDates.length - 1));
+  if (dayEnabled){
+    el.dateSlider.min="0";
+    el.dateSlider.max=String(Math.max(0, DATA.availableDates.length-1));
+    el.dateSlider.step="1";
+    if (!IS_SCRUBBING) el.dateSlider.value=String(clamp(state.dayIndex,0,DATA.availableDates.length-1));
   } else {
-    el.dateSlider.min = "0";
-    el.dateSlider.max = "0";
-    el.dateSlider.step = "1";
-    el.dateSlider.value = "0";
+    el.dateSlider.min="0"; el.dateSlider.max="0"; el.dateSlider.step="1"; el.dateSlider.value="0";
   }
   updateDateLabel();
 }
 
-function renderLegend() {
-  el.legendBar.innerHTML = "";
-  el.legendTicks.innerHTML = "";
-
-  if (VIEW_MODE === "delta") {
-    el.legendTitle.textContent = "Legend (Δ µg/m³)";
-    const segs = ["#60a5fa","#3b82f6","#1d4ed8","#111827","#111827","#7f1d1d","#ef4444","#fb7185"];
-    for (const c of segs) {
-      const d = document.createElement("div");
-      d.style.background = c;
-      el.legendBar.appendChild(d);
-    }
-    const t1 = document.createElement("div"); t1.textContent = "-60";
-    const t2 = document.createElement("div"); t2.textContent = "0";
-    const t3 = document.createElement("div"); t3.textContent = "+60";
-    el.legendTicks.appendChild(t1); el.legendTicks.appendChild(t2); el.legendTicks.appendChild(t3);
+function renderLegend(){
+  el.legendBar.innerHTML=""; el.legendTicks.innerHTML="";
+  if (VIEW_MODE==="delta"){
+    el.legendTitle.textContent="Legend (Δ µg/m³)";
+    const segs=["#60a5fa","#3b82f6","#1d4ed8","#111827","#111827","#7f1d1d","#ef4444","#fb7185"];
+    for (const c of segs){ const d=document.createElement("div"); d.style.background=c; el.legendBar.appendChild(d); }
+    for (const lab of ["-60","0","+60"]){ const d=document.createElement("div"); d.textContent=lab; el.legendTicks.appendChild(d); }
     return;
   }
-
-  el.legendTitle.textContent = "Legend (µg/m³)";
-  const segs = [];
-  for (let i=0; i<4; i++) segs.push(PM_BLUE);
-  for (let i=0; i<4; i++) segs.push(PM_YELLOW);
-  const rampSamples = 10;
-  for (let i=0; i<rampSamples; i++) {
-    const t = i / (rampSamples - 1);
-    const v = 15 + t * (250 - 15);
+  el.legendTitle.textContent="Legend (µg/m³)";
+  const segs=[];
+  for (let i=0;i<4;i++) segs.push(PM_BLUE);
+  for (let i=0;i<4;i++) segs.push(PM_YELLOW);
+  const rampSamples=10;
+  for (let i=0;i<rampSamples;i++){
+    const t=i/(rampSamples-1);
+    const v=15 + t*(250-15);
     segs.push(pmToColor(v));
   }
-  for (const c of segs) {
-    const d = document.createElement("div");
-    d.style.background = c;
-    el.legendBar.appendChild(d);
-  }
-  for (const lab of ["0","5","15","250+"]) {
-    const d = document.createElement("div"); d.textContent = lab;
-    el.legendTicks.appendChild(d);
-  }
+  for (const c of segs){ const d=document.createElement("div"); d.style.background=c; el.legendBar.appendChild(d); }
+  for (const lab of ["0","5","15","250+"]){ const d=document.createElement("div"); d.textContent=lab; el.legendTicks.appendChild(d); }
 }
 
-function buildMonthSelect() {
-  el.monthSelect.innerHTML = "";
-  MONTHS.forEach((m, i) => {
-    const opt = document.createElement("option");
-    opt.value = String(i);
-    opt.textContent = m;
-    el.monthSelect.appendChild(opt);
-  });
-  el.monthSelect.value = String(state.month);
+function buildMonthSelect(){
+  el.monthSelect.innerHTML="";
+  MONTHS.forEach((m,i)=>{ const opt=document.createElement("option"); opt.value=String(i); opt.textContent=m; el.monthSelect.appendChild(opt); });
+  el.monthSelect.value=String(state.month);
 }
 
-function project(lon, lat, W, H, pad) {
-  const x = pad + (lon - BBOX.lonMin) / (BBOX.lonMax - BBOX.lonMin) * (W - 2*pad);
-  const y = pad + (BBOX.latMax - lat) / (BBOX.latMax - BBOX.latMin) * (H - 2*pad);
-  return { x, y };
+function project(lon,lat,W,H,pad){
+  const x=pad + (lon-BBOX.lonMin)/(BBOX.lonMax-BBOX.lonMin)*(W-2*pad);
+  const y=pad + (BBOX.latMax-lat)/(BBOX.latMax-BBOX.latMin)*(H-2*pad);
+  return { x,y };
 }
 
-function buildMask() {
-  const gj = state.boundary;
-  const mask = new Uint8Array(GRID.nx * GRID.ny);
-  for (let iy=0; iy<GRID.ny; iy++) {
-    for (let ix=0; ix<GRID.nx; ix++) {
-      const { lon, lat } = lonLatFromGrid(ix, iy);
-      const insideIndia = gj ? pointInGeoJSON(lon, lat, gj) : true;
+function buildMask(){
+  const gj=state.boundary;
+  const mask=new Uint8Array(GRID.nx*GRID.ny);
+  for (let iy=0; iy<GRID.ny; iy++){
+    for (let ix=0; ix<GRID.nx; ix++){
+      const { lon, lat } = lonLatFromGrid(ix,iy);
+      const insideIndia = gj ? pointInGeoJSON(lon,lat,gj) : true;
       mask[iy*GRID.nx + ix] = insideIndia ? 1 : 0;
     }
   }
-  state.mask = mask;
+  state.mask=mask;
 }
 
-function drawGeoJSONOutline(ctx, gj, W, H, pad) {
+function drawGeoJSONOutline(ctx,gj,W,H,pad){
   if (!gj) return;
   ctx.save();
-  ctx.lineWidth = 1.1;
-  ctx.strokeStyle = "rgba(255,255,255,0.60)";
-  ctx.globalAlpha = 0.85;
+  ctx.lineWidth=1.1;
+  ctx.strokeStyle="rgba(255,255,255,0.60)";
+  ctx.globalAlpha=0.85;
 
-  function drawRing(ring) {
-    if (!ring || ring.length < 2) return;
+  function drawRing(ring){
+    if (!ring || ring.length<2) return;
     ctx.beginPath();
-    for (let i=0; i<ring.length; i++) {
-      const [lon, lat] = ring[i];
-      const { x, y } = project(lon, lat, W, H, pad);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    for (let i=0;i<ring.length;i++){
+      const [lon,lat]=ring[i];
+      const { x,y }=project(lon,lat,W,H,pad);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
     ctx.closePath();
     ctx.stroke();
   }
-  function drawGeom(geom) {
+  function drawGeom(geom){
     if (!geom) return;
-    if (geom.type === "Polygon") for (const ring of geom.coordinates) drawRing(ring);
-    else if (geom.type === "MultiPolygon") for (const poly of geom.coordinates) for (const ring of poly) drawRing(ring);
+    if (geom.type==="Polygon") for (const ring of geom.coordinates) drawRing(ring);
+    else if (geom.type==="MultiPolygon") for (const poly of geom.coordinates) for (const ring of poly) drawRing(ring);
   }
 
-  if (gj.type === "FeatureCollection") for (const f of gj.features || []) drawGeom(f.geometry);
-  else if (gj.type === "Feature") drawGeom(gj.geometry);
+  if (gj.type==="FeatureCollection") for (const f of gj.features||[]) drawGeom(f.geometry);
+  else if (gj.type==="Feature") drawGeom(gj.geometry);
   else drawGeom(gj);
 
   ctx.restore();
 }
 
-/* NEW: draw monitoring station dots (only when DATA.loaded) */
-function drawStations(ctx, W, H, pad, tctx) {
-  if (!DATA.loaded || !Array.isArray(DATA.stations) || DATA.stations.length === 0) return;
-
-  // dot sizing: scale mildly with canvas size, capped
-  const base = Math.min(W, H);
-  const r = clamp(base * 0.006, 1.4, 3.0);
+function drawStations(ctx,W,H,pad,tctx){
+  if (!DATA.loaded || !Array.isArray(DATA.stations) || DATA.stations.length===0) return;
+  const base=Math.min(W,H);
+  const r=clamp(base*0.006,1.4,3.0);
 
   ctx.save();
-  ctx.globalCompositeOperation = "source-over";
+  ctx.globalCompositeOperation="source-over";
 
-  for (const s of DATA.stations) {
-    const lon = s.lon, lat = s.lat;
+  for (const s of DATA.stations){
+    const lon=s.lon, lat=s.lat;
     if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
-
-    // keep within India boundary/mask
-    if (state.boundary && !pointInGeoJSON(lon, lat, state.boundary)) continue;
+    if (state.boundary && !pointInGeoJSON(lon,lat,state.boundary)) continue;
 
     let pmB, pmS;
-    if (tctx.mode === "month") {
-      pmB = baselinePM_PostRemoval_Month(lon, lat, tctx.month);
-      pmS = scenarioPM_PostRemoval_Month(lon, lat, tctx.month);
+    if (tctx.mode==="month"){
+      pmB=baselinePM_PostRemoval_Month(lon,lat,tctx.month);
+      pmS=scenarioPM_PostRemoval_Month(lon,lat,tctx.month);
     } else {
-      pmB = baselinePM_PostRemoval_Day(lon, lat, tctx.dateKey);
-      pmS = scenarioPM_PostRemoval_Day(lon, lat, tctx.dateKey);
+      pmB=baselinePM_PostRemoval_Day(lon,lat,tctx.dateKey);
+      pmS=scenarioPM_PostRemoval_Day(lon,lat,tctx.dateKey);
     }
 
-    pmB = applyNorthOfArcZero(lon, lat, pmB);
-    pmS = applyNorthOfArcZero(lon, lat, pmS);
+    pmB=applyNorthOfArcZero(lon,lat,pmB);
+    pmS=applyNorthOfArcZero(lon,lat,pmS);
 
     let css;
-    if (VIEW_MODE === "baseline") css = pmToColor(pmB);
-    else if (VIEW_MODE === "scenario") css = pmToColor(pmS);
-    else css = deltaToColor(pmS - pmB);
+    if (VIEW_MODE==="baseline") css=pmToColor(pmB);
+    else if (VIEW_MODE==="scenario") css=pmToColor(pmS);
+    else css=deltaToColor(pmS-pmB);
 
-    // Slightly darker + fainter
-    const fill = darkenCssColor(css, 0.78, 0.55);
+    const fill=darkenCssColor(css,0.78,0.55);
+    const { x,y }=project(lon,lat,W,H,pad);
 
-    const { x, y } = project(lon, lat, W, H, pad);
-
-    // subtle outline so it stays visible on similar colors
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = fill;
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=fill;
     ctx.fill();
-
-    ctx.lineWidth = 0.8;
-    ctx.strokeStyle = "rgba(0,0,0,0.25)";
+    ctx.lineWidth=0.8;
+    ctx.strokeStyle="rgba(0,0,0,0.25)";
     ctx.stroke();
   }
-
   ctx.restore();
 }
 
-function renderMap() {
-  const canvas = el.canvas;
-  const rect = el.canvasWrap.getBoundingClientRect();
-  const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-  canvas.width = Math.floor(rect.width * dpr);
-  canvas.height = Math.floor(rect.height * dpr);
+function renderMap(){
+  const canvas=el.canvas;
+  const rect=el.canvasWrap.getBoundingClientRect();
+  const dpr=Math.max(1, Math.floor(window.devicePixelRatio || 1));
+  canvas.width=Math.floor(rect.width*dpr);
+  canvas.height=Math.floor(rect.height*dpr);
 
-  const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ctx=canvas.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 
-  const W = rect.width, H = rect.height;
+  const W=rect.width, H=rect.height;
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.fillStyle="rgba(0,0,0,0.12)";
   ctx.fillRect(0,0,W,H);
 
-  const pad = 20;
-  const cellW = (W - 2*pad) / GRID.nx;
-  const cellH = (H - 2*pad) / GRID.ny;
+  const pad=20;
+  const cellW=(W-2*pad)/GRID.nx;
+  const cellH=(H-2*pad)/GRID.ny;
 
-  const tctx = getCurrentTemporalContext();
+  const tctx=getCurrentTemporalContext();
+  if (tctx.mode==="month"){ if (DATA.loaded) ensureBaselineGridForMonth(tctx.month); }
+  else { if (DATA.loaded && tctx.dateKey) ensureBaselineGridForDate(tctx.dateKey); }
 
-  if (tctx.mode === "month") {
-    if (DATA.loaded) ensureBaselineGridForMonth(tctx.month);
-  } else {
-    if (DATA.loaded && tctx.dateKey) ensureBaselineGridForDate(tctx.dateKey);
-  }
-
-  for (let iy=0; iy<GRID.ny; iy++) {
-    for (let ix=0; ix<GRID.nx; ix++) {
+  for (let iy=0; iy<GRID.ny; iy++){
+    for (let ix=0; ix<GRID.nx; ix++){
       const inside = state.mask ? state.mask[iy*GRID.nx + ix] : 1;
       if (!inside) continue;
 
-      const { lon, lat } = lonLatFromGrid(ix, iy);
+      const { lon, lat } = lonLatFromGrid(ix,iy);
 
       let pmB, pmS;
-      if (tctx.mode === "month") {
-        pmB = baselinePM_PostRemoval_Month(lon, lat, tctx.month, ix, iy);
-        pmS = scenarioPM_PostRemoval_Month(lon, lat, tctx.month);
+      if (tctx.mode==="month"){
+        pmB=baselinePM_PostRemoval_Month(lon,lat,tctx.month,ix,iy);
+        pmS=scenarioPM_PostRemoval_Month(lon,lat,tctx.month);
       } else {
-        pmB = baselinePM_PostRemoval_Day(lon, lat, tctx.dateKey, ix, iy);
-        pmS = scenarioPM_PostRemoval_Day(lon, lat, tctx.dateKey);
+        pmB=baselinePM_PostRemoval_Day(lon,lat,tctx.dateKey,ix,iy);
+        pmS=scenarioPM_PostRemoval_Day(lon,lat,tctx.dateKey);
       }
 
-      pmB = applyNorthOfArcZero(lon, lat, pmB);
-      pmS = applyNorthOfArcZero(lon, lat, pmS);
+      pmB=applyNorthOfArcZero(lon,lat,pmB);
+      pmS=applyNorthOfArcZero(lon,lat,pmS);
 
       let fill;
-      if (VIEW_MODE === "baseline") fill = pmToColor(pmB);
-      else if (VIEW_MODE === "scenario") fill = pmToColor(pmS);
-      else fill = deltaToColor(pmS - pmB);
+      if (VIEW_MODE==="baseline") fill=pmToColor(pmB);
+      else if (VIEW_MODE==="scenario") fill=pmToColor(pmS);
+      else fill=deltaToColor(pmS-pmB);
 
-      const x = pad + ix * cellW;
-      const y = pad + iy * cellH;
-      ctx.fillStyle = fill;
-      ctx.fillRect(x, y, cellW + 0.5, cellH + 0.5);
+      const x=pad + ix*cellW;
+      const y=pad + iy*cellH;
+      ctx.fillStyle=fill;
+      ctx.fillRect(x,y,cellW+0.5,cellH+0.5);
     }
   }
 
-  // NEW: station dots overlay (only with real data)
-  drawStations(ctx, W, H, pad, tctx);
+  drawStations(ctx,W,H,pad,tctx);
+  if (SHOW_BORDERS) drawGeoJSONOutline(ctx,state.boundary,W,H,pad);
 
-  if (SHOW_BORDERS) drawGeoJSONOutline(ctx, state.boundary, W, H, pad);
+  ctx.strokeStyle="rgba(255,255,255,0.16)";
+  ctx.lineWidth=1;
+  ctx.strokeRect(pad-0.5,pad-0.5,(W-2*pad)+1,(H-2*pad)+1);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.16)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(pad-0.5, pad-0.5, (W-2*pad)+1, (H-2*pad)+1);
-
-  const dataTag = DATA.loaded ? `data=${DATA.stats.stationCount} stations` : `data=synthetic`;
-  const timeTag = (tctx.mode === "month") ? `month=${MONTHS[tctx.month]}` : `date=${tctx.dateKey}`;
-  const animTag = ANIM.playing ? `anim=${ANIM.mode} @${ANIM.speedMult}×` : "static";
-  const barrierTag = HIMALAYA_BARRIER.enabled ? `himalayaBarrier=on(v=${HIMALAYA_BARRIER.value},r=${HIMALAYA_BARRIER.radiusKm}km)` : "himalayaBarrier=off";
-  const northZeroTag = NORTH_OF_ARC_ZERO_FIELD.enabled ? `northOfArc=0(padDeg=${NORTH_OF_ARC_ZERO_FIELD.padDeg})` : "northOfArc=unchanged";
-
-  el.metaLine.textContent =
-    `Grid ${GRID.nx}×${GRID.ny} | ${timeTag} | timeMode=${TIME_MODE} | mapSize=${state.mapSizePct}% | ${dataTag} | ${barrierTag} | ${northZeroTag} | ${animTag}`;
+  const dataTag=DATA.loaded ? `data=${DATA.stats.stationCount} stations` : `data=synthetic`;
+  const timeTag=(tctx.mode==="month") ? `month=${MONTHS[tctx.month]}` : `date=${tctx.dateKey}`;
+  const animTag=ANIM.playing ? `anim=${ANIM.mode} @${ANIM.speedMult}×` : "static";
+  el.metaLine.textContent = `Grid ${GRID.nx}×${GRID.ny} | ${timeTag} | timeMode=${TIME_MODE} | mapSize=${state.mapSizePct}% | ${dataTag} | ${animTag}`;
 }
 
-function computeRegionAverages() {
-  const tctx = getCurrentTemporalContext();
+function computeRegionAverages(){
+  const tctx=getCurrentTemporalContext();
+  if (tctx.mode==="month"){ if (DATA.loaded) ensureBaselineGridForMonth(tctx.month); }
+  else { if (DATA.loaded && tctx.dateKey) ensureBaselineGridForDate(tctx.dateKey); }
 
-  if (tctx.mode === "month") {
-    if (DATA.loaded) ensureBaselineGridForMonth(tctx.month);
-  } else {
-    if (DATA.loaded && tctx.dateKey) ensureBaselineGridForDate(tctx.dateKey);
-  }
+  const sums=Object.fromEntries(REGIONS.map(r=>[r.id,0]));
+  const counts=Object.fromEntries(REGIONS.map(r=>[r.id,0]));
 
-  const sums = Object.fromEntries(REGIONS.map(r => [r.id, 0]));
-  const counts = Object.fromEntries(REGIONS.map(r => [r.id, 0]));
-
-  for (let iy=0; iy<GRID.ny; iy++) {
-    for (let ix=0; ix<GRID.nx; ix++) {
+  for (let iy=0; iy<GRID.ny; iy++){
+    for (let ix=0; ix<GRID.nx; ix++){
       const insideIndia = state.mask ? state.mask[iy*GRID.nx + ix] : 1;
       if (!insideIndia) continue;
 
-      const { lon, lat } = lonLatFromGrid(ix, iy);
+      const { lon, lat } = lonLatFromGrid(ix,iy);
 
-      let pm = (tctx.mode === "month")
-        ? baselinePM_PostRemoval_Month(lon, lat, tctx.month, ix, iy)
-        : baselinePM_PostRemoval_Day(lon, lat, tctx.dateKey, ix, iy);
+      let pm = (tctx.mode==="month")
+        ? baselinePM_PostRemoval_Month(lon,lat,tctx.month,ix,iy)
+        : baselinePM_PostRemoval_Day(lon,lat,tctx.dateKey,ix,iy);
 
-      pm = applyNorthOfArcZero(lon, lat, pm);
+      pm = applyNorthOfArcZero(lon,lat,pm);
       if (!Number.isFinite(pm)) continue;
 
       sums.India += pm; counts.India += 1;
 
-      for (const r of REGIONS) {
-        if (!r.bbox || r.id === "India") continue;
-        const b = r.bbox;
-        if (lon >= b.lonMin && lon <= b.lonMax && lat >= b.latMin && lat <= b.latMax) {
-          sums[r.id] += pm;
-          counts[r.id] += 1;
+      for (const r of REGIONS){
+        if (!r.bbox || r.id==="India") continue;
+        const b=r.bbox;
+        if (lon>=b.lonMin && lon<=b.lonMax && lat>=b.latMin && lat<=b.latMax){
+          sums[r.id]+=pm; counts[r.id]+=1;
         }
       }
     }
   }
 
-  const means = {};
-  for (const r of REGIONS) means[r.id] = (counts[r.id] > 0) ? (sums[r.id] / counts[r.id]) : NaN;
+  const means={};
+  for (const r of REGIONS) means[r.id]=(counts[r.id]>0) ? (sums[r.id]/counts[r.id]) : NaN;
   return means;
 }
 
-function setupTooltip() {
-  const wrap = el.canvasWrap;
-  const tip = el.tooltip;
-
-  function hide() { tip.style.display = "none"; }
+function setupTooltip(){
+  const wrap=el.canvasWrap;
+  const tip=el.tooltip;
+  function hide(){ tip.style.display="none"; }
   wrap.addEventListener("mouseleave", hide);
 
-  wrap.addEventListener("mousemove", (ev) => {
-    const r = wrap.getBoundingClientRect();
-    const x = ev.clientX - r.left;
-    const y = ev.clientY - r.top;
+  wrap.addEventListener("mousemove",(ev)=>{
+    const r=wrap.getBoundingClientRect();
+    const x=ev.clientX - r.left;
+    const y=ev.clientY - r.top;
 
-    const pad = 20;
-    const W = r.width, H = r.height;
-    const gx = (x - pad) / (W - 2*pad);
-    const gy = (y - pad) / (H - 2*pad);
+    const pad=20;
+    const W=r.width, H=r.height;
+    const gx=(x-pad)/(W-2*pad);
+    const gy=(y-pad)/(H-2*pad);
 
-    if (gx < 0 || gx > 1 || gy < 0 || gy > 1) { hide(); return; }
+    if (gx<0 || gx>1 || gy<0 || gy>1){ hide(); return; }
+    const ix=Math.floor(gx*GRID.nx);
+    const iy=Math.floor(gy*GRID.ny);
+    if (ix<0 || ix>=GRID.nx || iy<0 || iy>=GRID.ny){ hide(); return; }
 
-    const ix = Math.floor(gx * GRID.nx);
-    const iy = Math.floor(gy * GRID.ny);
-    if (ix < 0 || ix >= GRID.nx || iy < 0 || iy >= GRID.ny) { hide(); return; }
+    const inside=state.mask ? state.mask[iy*GRID.nx + ix] : 1;
+    if (!inside){ hide(); return; }
 
-    const inside = state.mask ? state.mask[iy*GRID.nx + ix] : 1;
-    if (!inside) { hide(); return; }
-
-    const { lon, lat } = lonLatFromGrid(ix, iy);
-    const tctx = getCurrentTemporalContext();
+    const { lon, lat } = lonLatFromGrid(ix,iy);
+    const tctx=getCurrentTemporalContext();
 
     let pmB, pmS;
-    if (tctx.mode === "month") {
-      pmB = baselinePM_PostRemoval_Month(lon, lat, tctx.month, ix, iy);
-      pmS = scenarioPM_PostRemoval_Month(lon, lat, tctx.month);
+    if (tctx.mode==="month"){
+      pmB=baselinePM_PostRemoval_Month(lon,lat,tctx.month,ix,iy);
+      pmS=scenarioPM_PostRemoval_Month(lon,lat,tctx.month);
     } else {
-      pmB = baselinePM_PostRemoval_Day(lon, lat, tctx.dateKey, ix, iy);
-      pmS = scenarioPM_PostRemoval_Day(lon, lat, tctx.dateKey);
+      pmB=baselinePM_PostRemoval_Day(lon,lat,tctx.dateKey,ix,iy);
+      pmS=scenarioPM_PostRemoval_Day(lon,lat,tctx.dateKey);
     }
 
-    pmB = applyNorthOfArcZero(lon, lat, pmB);
-    pmS = applyNorthOfArcZero(lon, lat, pmS);
+    pmB=applyNorthOfArcZero(lon,lat,pmB);
+    pmS=applyNorthOfArcZero(lon,lat,pmS);
 
-    const modeLabel = (VIEW_MODE === "delta") ? "Δ" : (VIEW_MODE === "baseline" ? "Baseline" : "Scenario");
-    const value = (VIEW_MODE === "delta") ? (pmS - pmB) : (VIEW_MODE === "baseline" ? pmB : pmS);
+    const modeLabel=(VIEW_MODE==="delta")?"Δ":(VIEW_MODE==="baseline"?"Baseline":"Scenario");
+    const value=(VIEW_MODE==="delta")?(pmS-pmB):(VIEW_MODE==="baseline"?pmB:pmS);
 
-    tip.style.display = "block";
-    tip.style.left = `${x}px`;
-    tip.style.top = `${y}px`;
+    tip.style.display="block";
+    tip.style.left=`${x}px`;
+    tip.style.top=`${y}px`;
 
-    const timeLine = (tctx.mode === "month")
+    const timeLine=(tctx.mode==="month")
       ? `<div><span class="muted">month</span> ${MONTHS[tctx.month]}</div>`
       : `<div><span class="muted">date</span> ${tctx.dateKey}</div>`;
 
-    const northNote = isNorthOfHimalayaArc(lon, lat)
-      ? `<div style="margin-top:6px;"><span class="muted">note</span> north-of-arc forced to ${NORTH_OF_ARC_ZERO_FIELD.value}</div>`
-      : "";
-
-    tip.innerHTML = `
+    tip.innerHTML=`
       <div><span class="muted">lon</span> ${lon.toFixed(2)} <span class="muted">lat</span> ${lat.toFixed(2)}</div>
       ${timeLine}
       <div><span class="muted">cell</span> [${ix},${iy}]</div>
       <div style="margin-top:6px;"><span class="muted">${modeLabel}</span> <strong>${value.toFixed(1)} µg/m³</strong></div>
-      <div><span class="muted">baseline</span> ${pmB.toFixed(1)} <span class="muted">scenario</span> ${pmS.toFixed(1)}</div>
-      ${northNote}
     `;
   });
 }
 
-function coarseFallbackBoundary() {
-  return {
-    type: "Polygon",
-    coordinates: [[
-      [68.2, 23.5],[69.5, 24.8],[70.2, 26.0],[71.2, 27.5],[72.0, 28.7],
-      [73.0, 31.5],[75.0, 33.5],[77.0, 35.0],[79.0, 35.7],[81.5, 34.8],
-      [84.0, 28.5],[87.0, 27.5],[89.0, 26.0],[91.5, 26.5],[94.0, 27.5],
-      [96.0, 28.5],[97.3, 27.8],[97.0, 25.0],[95.0, 23.0],[93.0, 21.0],
-      [90.5, 20.0],[88.0, 19.5],[86.0, 19.2],[84.0, 18.4],[82.0, 16.5],
-      [80.5, 15.0],[79.5, 12.7],[78.0, 10.0],[76.0, 8.5],[74.0, 8.0],
-      [72.5, 9.5],[71.5, 11.5],[70.5, 15.0],[69.0, 18.5],[68.2, 23.5]
-    ]]
-  };
+function coarseFallbackBoundary(){
+  return { type:"Polygon", coordinates:[[ [68.2,23.5],[69.5,24.8],[70.2,26.0],[71.2,27.5],[72.0,28.7],
+    [73.0,31.5],[75.0,33.5],[77.0,35.0],[79.0,35.7],[81.5,34.8],[84.0,28.5],[87.0,27.5],[89.0,26.0],
+    [91.5,26.5],[94.0,27.5],[96.0,28.5],[97.3,27.8],[97.0,25.0],[95.0,23.0],[93.0,21.0],[90.5,20.0],
+    [88.0,19.5],[86.0,19.2],[84.0,18.4],[82.0,16.5],[80.5,15.0],[79.5,12.7],[78.0,10.0],[76.0,8.5],
+    [74.0,8.0],[72.5,9.5],[71.5,11.5],[70.5,15.0],[69.0,18.5],[68.2,23.5] ]] };
 }
-async function loadBoundary() {
-  try {
-    if (INDIA_GEOJSON_OVERRIDE) {
-      state.boundary = INDIA_GEOJSON_OVERRIDE;
-      state.boundaryLoadedFrom = "override";
+async function loadBoundary(){
+  try{
+    if (INDIA_GEOJSON_OVERRIDE){
+      state.boundary=INDIA_GEOJSON_OVERRIDE;
+      state.boundaryLoadedFrom="override";
       return;
     }
-    const res = await fetch(BOUNDARY_GEOJSON_URL, { cache: "force-cache" });
+    const res=await fetch(BOUNDARY_GEOJSON_URL,{ cache:"force-cache" });
     if (!res.ok) throw new Error(`boundary fetch failed: ${res.status}`);
-    state.boundary = await res.json();
-    state.boundaryLoadedFrom = "geojson-india (public)";
-  } catch (e) {
+    state.boundary=await res.json();
+    state.boundaryLoadedFrom="geojson-india (public)";
+  } catch(e){
     console.warn(e);
-    state.boundary = coarseFallbackBoundary();
-    state.boundaryLoadedFrom = "fallback (coarse)";
+    state.boundary=coarseFallbackBoundary();
+    state.boundaryLoadedFrom="fallback (coarse)";
   }
 }
 
-function parseStationsAndRows(json) {
-  const stations = new Map();
-  const rows = [];
-
-  if (json && typeof json === "object" && !Array.isArray(json) && json.stations && json.data) {
-    for (const [id, s] of Object.entries(json.stations)) {
-      const lat = safeNum(s.lat ?? s.latitude);
-      const lon = safeNum(s.lon ?? s.lng ?? s.longitude);
+function parseStationsAndRows(json){
+  const stations=new Map();
+  const rows=[];
+  if (json && typeof json==="object" && !Array.isArray(json) && json.stations && json.data){
+    for (const [id,s] of Object.entries(json.stations)){
+      const lat=safeNum(s.lat ?? s.latitude);
+      const lon=safeNum(s.lon ?? s.lng ?? s.longitude);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      stations.set(id, { id, lat, lon, name: s.name ?? s.station ?? s.site ?? id });
+      stations.set(id,{ id, lat, lon, name:s.name ?? s.station ?? s.site ?? id });
     }
-    for (const [id, byDate] of Object.entries(json.data)) {
-      const meta = stations.get(id);
-      if (!meta) continue;
-      if (!byDate || typeof byDate !== "object") continue;
-
-      for (const [dateStr, payload] of Object.entries(byDate)) {
-        const month = monthIndexFromDateLike(dateStr);
-        const dateKey = dateKeyFromDateLike(dateStr);
-        if (month === null || !dateKey) continue;
-
-        const v = safeNum(payload?.pm25 ?? payload?.value ?? payload?.PM25 ?? payload);
+    for (const [id,byDate] of Object.entries(json.data)){
+      const meta=stations.get(id);
+      if (!meta || !byDate || typeof byDate!=="object") continue;
+      for (const [dateStr,payload] of Object.entries(byDate)){
+        const month=monthIndexFromDateLike(dateStr);
+        const dateKey=dateKeyFromDateLike(dateStr);
+        if (month===null || !dateKey) continue;
+        const v=safeNum(payload?.pm25 ?? payload?.value ?? payload?.PM25 ?? payload);
         if (!Number.isFinite(v)) continue;
-
-        rows.push({ id, lon: meta.lon, lat: meta.lat, month, dateKey, value: v });
+        rows.push({ id, lon:meta.lon, lat:meta.lat, month, dateKey, value:v });
       }
     }
     return { stations, rows };
   }
-
-  if (Array.isArray(json)) {
-    for (const r of json) {
-      const id = r?.sensorId ?? r?.stationId ?? r?.siteId ?? r?.id ?? r?.station ?? r?.sensor;
+  if (Array.isArray(json)){
+    for (const r of json){
+      const id=r?.sensorId ?? r?.stationId ?? r?.siteId ?? r?.id ?? r?.station ?? r?.sensor;
       if (!id) continue;
-
-      const lat = safeNum(r?.lat ?? r?.latitude);
-      const lon = safeNum(r?.lon ?? r?.lng ?? r?.longitude);
+      const lat=safeNum(r?.lat ?? r?.latitude);
+      const lon=safeNum(r?.lon ?? r?.lng ?? r?.longitude);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-
-      const dt = r?.date ?? r?.datetime ?? r?.time ?? r?.timestamp;
-      const month = monthIndexFromDateLike(dt);
-      const dateKey = dateKeyFromDateLike(dt);
-      if (month === null || !dateKey) continue;
-
-      const v = safeNum(r?.pm25 ?? r?.value ?? r?.PM25 ?? r?.pm_25);
+      const dt=r?.date ?? r?.datetime ?? r?.time ?? r?.timestamp;
+      const month=monthIndexFromDateLike(dt);
+      const dateKey=dateKeyFromDateLike(dt);
+      if (month===null || !dateKey) continue;
+      const v=safeNum(r?.pm25 ?? r?.value ?? r?.PM25 ?? r?.pm_25);
       if (!Number.isFinite(v)) continue;
-
-      if (!stations.has(id)) stations.set(id, { id, lat, lon, name: r?.name ?? r?.stationName ?? String(id) });
-      rows.push({ id, lon, lat, month, dateKey, value: v });
+      if (!stations.has(id)) stations.set(id,{ id, lat, lon, name:r?.name ?? r?.stationName ?? String(id) });
+      rows.push({ id, lon, lat, month, dateKey, value:v });
     }
     return { stations, rows };
   }
-
   throw new Error("Unrecognized JSON structure for PM2.5 data.");
 }
 
-function aggregateMonthlyMeans(rows) {
-  const byStationMonth = new Map();
-  for (const r of rows) {
-    const key = `${r.id}|${r.month}`;
-    if (!byStationMonth.has(key)) byStationMonth.set(key, { sum: 0, count: 0, lon: r.lon, lat: r.lat });
-    const a = byStationMonth.get(key);
-    a.sum += r.value;
-    a.count += 1;
+function aggregateMonthlyMeans(rows){
+  const byStationMonth=new Map();
+  for (const r of rows){
+    const key=`${r.id}|${r.month}`;
+    if (!byStationMonth.has(key)) byStationMonth.set(key,{ sum:0, count:0, lon:r.lon, lat:r.lat });
+    const a=byStationMonth.get(key);
+    a.sum+=r.value; a.count+=1;
   }
-  const monthPoints = Array.from({length:12}, () => []);
-  for (const [key, a] of byStationMonth.entries()) {
-    const m = parseInt(key.split("|")[1], 10);
-    if (!(m >= 0 && m < 12)) continue;
-    if (a.count <= 0) continue;
-    const mean = a.sum / a.count;
+  const monthPoints=Array.from({length:12},()=>[]);
+  for (const [key,a] of byStationMonth.entries()){
+    const m=parseInt(key.split("|")[1],10);
+    if (!(m>=0 && m<12) || a.count<=0) continue;
+    const mean=a.sum/a.count;
     if (!Number.isFinite(mean)) continue;
-    monthPoints[m].push({ lon: a.lon, lat: a.lat, value: mean });
+    monthPoints[m].push({ lon:a.lon, lat:a.lat, value:mean });
   }
   return monthPoints;
 }
-
-function aggregateDailyMeans(rows) {
-  const byStationDay = new Map();
-  for (const r of rows) {
+function aggregateDailyMeans(rows){
+  const byStationDay=new Map();
+  for (const r of rows){
     if (!r.dateKey) continue;
-    const key = `${r.id}|${r.dateKey}`;
-    if (!byStationDay.has(key)) byStationDay.set(key, { sum: 0, count: 0, lon: r.lon, lat: r.lat, dateKey: r.dateKey });
-    const a = byStationDay.get(key);
-    a.sum += r.value;
-    a.count += 1;
+    const key=`${r.id}|${r.dateKey}`;
+    if (!byStationDay.has(key)) byStationDay.set(key,{ sum:0, count:0, lon:r.lon, lat:r.lat, dateKey:r.dateKey });
+    const a=byStationDay.get(key);
+    a.sum+=r.value; a.count+=1;
   }
-
-  const dayPointsByDate = new Map();
-  for (const a of byStationDay.values()) {
-    if (a.count <= 0) continue;
-    const mean = a.sum / a.count;
+  const dayPointsByDate=new Map();
+  for (const a of byStationDay.values()){
+    if (a.count<=0) continue;
+    const mean=a.sum/a.count;
     if (!Number.isFinite(mean)) continue;
-    if (!dayPointsByDate.has(a.dateKey)) dayPointsByDate.set(a.dateKey, []);
-    dayPointsByDate.get(a.dateKey).push({ lon: a.lon, lat: a.lat, value: mean });
+    if (!dayPointsByDate.has(a.dateKey)) dayPointsByDate.set(a.dateKey,[]);
+    dayPointsByDate.get(a.dateKey).push({ lon:a.lon, lat:a.lat, value:mean });
   }
-
-  const availableDates = Array.from(dayPointsByDate.keys()).sort();
+  const availableDates=Array.from(dayPointsByDate.keys()).sort();
   return { dayPointsByDate, availableDates };
 }
 
-async function loadPM25Data() {
-  try {
-    const res = await fetch(PM25_DATA_URL, { cache: "no-store" });
+async function loadPM25Data(){
+  try{
+    const res=await fetch(PM25_DATA_URL,{ cache:"no-store" });
     if (!res.ok) throw new Error(`PM2.5 data fetch failed: ${res.status} (${PM25_DATA_URL})`);
-    const json = await res.json();
+    const json=await res.json();
 
     const { stations, rows } = parseStationsAndRows(json);
-    DATA.loaded = true;
-    DATA.stations = Array.from(stations.values());
-    DATA.monthPoints = aggregateMonthlyMeans(rows);
+    DATA.loaded=true;
+    DATA.stations=Array.from(stations.values());
+    DATA.monthPoints=aggregateMonthlyMeans(rows);
 
-    const daily = aggregateDailyMeans(rows);
-    DATA.dayPointsByDate = daily.dayPointsByDate;
-    DATA.availableDates = daily.availableDates;
+    const daily=aggregateDailyMeans(rows);
+    DATA.dayPointsByDate=daily.dayPointsByDate;
+    DATA.availableDates=daily.availableDates;
 
-    DATA.stats.stationCount = DATA.stations.length;
-    DATA.stats.pointsPerMonth = DATA.monthPoints.map(p => p.length);
-    DATA.stats.dayCount = DATA.availableDates.length;
+    DATA.stats.stationCount=DATA.stations.length;
+    DATA.stats.pointsPerMonth=DATA.monthPoints.map(p=>p.length);
+    DATA.stats.dayCount=DATA.availableDates.length;
 
     invalidateAllBaselineCaches();
-    el.modelBadge.textContent = "prototype model (data-driven baseline)";
+    el.modelBadge.textContent="prototype model (data-driven baseline)";
 
-    state.dayIndex = 0;
-    TIME_MODE = (DATA.availableDates.length > 0) ? "day" : "month";
+    state.dayIndex=0;
+    TIME_MODE = (DATA.availableDates.length>0) ? "day" : "month";
     syncTemporalControls();
     return true;
-  } catch (e) {
-    DATA.loaded = false;
-    DATA.stations = [];
-    DATA.monthPoints = Array.from({length:12}, () => []);
-    DATA.dayPointsByDate = new Map();
-    DATA.availableDates = [];
-    DATA.stats.stationCount = 0;
-    DATA.stats.pointsPerMonth = Array.from({length:12}, () => 0);
-    DATA.stats.dayCount = 0;
+  } catch(e){
+    DATA.loaded=false;
+    DATA.stations=[];
+    DATA.monthPoints=Array.from({length:12},()=>[]);
+    DATA.dayPointsByDate=new Map();
+    DATA.availableDates=[];
+    DATA.stats.stationCount=0;
+    DATA.stats.pointsPerMonth=Array.from({length:12},()=>0);
+    DATA.stats.dayCount=0;
 
     invalidateAllBaselineCaches();
-    el.modelBadge.textContent = "prototype model (synthetic baseline)";
+    el.modelBadge.textContent="prototype model (synthetic baseline)";
 
-    TIME_MODE = "month";
+    TIME_MODE="month";
     stopPlayback();
     syncTemporalControls();
 
@@ -1704,13 +1563,14 @@ async function loadPM25Data() {
   }
 }
 
-function renderAll() {
+function renderAll(){
   syncTemporalControls();
   renderLegend();
   renderMap();
 
-  const means = computeRegionAverages();
+  const means=computeRegionAverages();
   el.meanIndia.innerHTML = formatUg(means.India);
+
   el.meanDelhi.innerHTML = formatUg(means.DelhiNCR);
   el.meanKolkata.innerHTML = formatUg(means.Kolkata);
   el.meanMumbai.innerHTML = formatUg(means.MumbaiMMR);
@@ -1718,68 +1578,67 @@ function renderAll() {
   el.meanPune.innerHTML = formatUg(means.Pune);
   el.meanHyderabad.innerHTML = formatUg(means.Hyderabad);
   el.meanChennai.innerHTML = formatUg(means.Chennai);
+
+  updateDateLabel();
 }
 
-function initUI() {
+function initUI(){
   buildMonthSelect();
   setupTooltip();
 
-  el.mapSizeSelect.value = String(state.mapSizePct);
+  el.mapSizeSelect.value=String(state.mapSizePct);
   setMapSizePct(state.mapSizePct);
 
-  el.monthSelect.addEventListener("change", () => {
+  el.monthSelect.addEventListener("change", ()=>{
     stopPlayback();
-    TIME_MODE = "month";
-    state.month = parseInt(el.monthSelect.value, 10);
+    TIME_MODE="month";
+    state.month=parseInt(el.monthSelect.value,10);
     scheduleRender();
   });
 
-  el.dateSlider.addEventListener("pointerdown", () => { IS_SCRUBBING = true; });
-  window.addEventListener("pointerup", () => {
+  el.dateSlider.addEventListener("pointerdown", ()=>{ IS_SCRUBBING=true; });
+  window.addEventListener("pointerup", ()=>{
     if (!IS_SCRUBBING) return;
-    IS_SCRUBBING = false;
-    if (!DATA.loaded || DATA.availableDates.length === 0) return;
-    TIME_MODE = "day";
-    state.dayIndex = parseInt(el.dateSlider.value, 10) || 0;
+    IS_SCRUBBING=false;
+    if (!DATA.loaded || DATA.availableDates.length===0) return;
+    TIME_MODE="day";
+    state.dayIndex=parseInt(el.dateSlider.value,10) || 0;
     updateDateLabel();
     scheduleRender();
   });
 
-  el.dateSlider.addEventListener("input", () => {
+  el.dateSlider.addEventListener("input", ()=>{
     stopPlayback();
-    if (!DATA.loaded || DATA.availableDates.length === 0) return;
-    TIME_MODE = "day";
-    state.dayIndex = parseInt(el.dateSlider.value, 10) || 0;
+    if (!DATA.loaded || DATA.availableDates.length===0) return;
+    TIME_MODE="day";
+    state.dayIndex=parseInt(el.dateSlider.value,10) || 0;
     updateDateLabel();
     scheduleRender();
   });
 
-  el.playBtn.addEventListener("click", () => {
-    if (ANIM.playing && ANIM.mode === "month") stopPlayback();
+  el.playBtn.addEventListener("click", ()=>{
+    if (ANIM.playing && ANIM.mode==="month") stopPlayback();
     else startPlayback("month");
   });
 
-  el.playDayBtn.addEventListener("click", () => {
+  el.playDayBtn.addEventListener("click", ()=>{
     if (el.playDayBtn.disabled) return;
-    if (ANIM.playing && ANIM.mode === "day") stopPlayback();
+    if (ANIM.playing && ANIM.mode==="day") stopPlayback();
     else startPlayback("day");
   });
 
-  function wireSpeed(btn) { btn.addEventListener("click", () => setSpeedMult(btn.dataset.speed)); }
-  wireSpeed(el.speed1Btn);
-  wireSpeed(el.speed2Btn);
-  wireSpeed(el.speed8Btn);
-  wireSpeed(el.speed16Btn);
+  function wireSpeed(btn){ btn.addEventListener("click", ()=>setSpeedMult(btn.dataset.speed)); }
+  wireSpeed(el.speed1Btn); wireSpeed(el.speed2Btn); wireSpeed(el.speed8Btn); wireSpeed(el.speed16Btn);
   setSpeedMult(1);
 
-  el.toggleBordersBtn.addEventListener("click", () => {
+  el.toggleBordersBtn.addEventListener("click", ()=>{
     SHOW_BORDERS = !SHOW_BORDERS;
     el.toggleBordersBtn.textContent = `Borders: ${SHOW_BORDERS ? "on" : "off"}`;
     scheduleRender();
   });
 
-  el.mapSizeSelect.addEventListener("change", () => setMapSizePct(el.mapSizeSelect.value));
-  window.addEventListener("resize", () => scheduleRender());
+  el.mapSizeSelect.addEventListener("change", ()=>setMapSizePct(el.mapSizeSelect.value));
+  window.addEventListener("resize", ()=>scheduleRender());
 
   syncTemporalControls();
 }
@@ -1794,9 +1653,8 @@ function initUI() {
   el.metaLine.textContent = `Boundary: ${state.boundaryLoadedFrom} | loading PM2.5 data…`;
   const ok = await loadPM25Data();
 
-  if (ok) {
-    el.metaLine.textContent =
-      `Boundary: ${state.boundaryLoadedFrom} | data: ${DATA.stats.stationCount} stations | days=${DATA.stats.dayCount} (missing days skipped)`;
+  if (ok){
+    el.metaLine.textContent = `Boundary: ${state.boundaryLoadedFrom} | data: ${DATA.stats.stationCount} stations | days=${DATA.stats.dayCount} (missing days skipped)`;
   } else {
     el.metaLine.textContent = `Boundary: ${state.boundaryLoadedFrom} | data: synthetic (failed to load ${PM25_DATA_URL})`;
   }
