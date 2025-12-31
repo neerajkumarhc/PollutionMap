@@ -299,19 +299,22 @@
       font-weight:850;
       font-family:var(--mono);
     }
+    
+.legend{
+  position:absolute;
+  right:10px;
+  bottom:10px;
 
-    .legend{
-      position:absolute;
-      right:10px;
-      bottom:10px;
-      background:rgba(0,0,0,0.40);
-      border:1px solid rgba(255,255,255,0.14);
-      border-radius:12px;
-      padding:10px;
-      width:240px;
-      backdrop-filter:blur(6px);
-    }
-    @media (min-width:720px){ .legend{width:260px} }
+  background:rgba(0,0,0,0.40);
+  border:1px solid rgba(255,255,255,0.14);
+  border-radius:12px;
+  padding:10px;
+  width:240px;
+  backdrop-filter:blur(6px);
+
+  transform:scale(0.5);
+  transform-origin:bottom right; /* keeps it pinned to your current right/bottom corner */
+}
     .legend .lg-title{
       font-size:11px;
       font-weight:900;
